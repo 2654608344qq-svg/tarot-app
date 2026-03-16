@@ -679,7 +679,9 @@ function readSingle() {
   document.getElementById('singleReadBtn').disabled = true;
   document.getElementById('singleSpinner').style.display = 'block';
   state.singleHistory = [{role:'user', content:'请根据以下信息进行塔罗牌解读：\n'+ctx}];
-  callAI(sys, state.singleHistory).then(function(result) {
+  callAI(sys, state.singleHistory, function(partial) {
+    document.getElementById('singleReadingText').textContent = partial;
+  }).then(function(result) {
     state.singleHistory.push({role:'assistant', content:result});
     state.singleReadingText = result;
     document.getElementById('singleReadingText').textContent = result;
@@ -750,7 +752,9 @@ function readMulti() {
   document.getElementById('multiReadBtn').disabled = true;
   document.getElementById('multiSpinner').style.display = 'block';
   state.multiHistory = [{role:'user', content:'请根据以下信息进行塔罗牌解读：\n'+ctx}];
-  callAI(sys, state.multiHistory).then(function(result) {
+  callAI(sys, state.multiHistory, function(partial) {
+    document.getElementById('multiReadingText').textContent = partial;
+  }).then(function(result) {
     state.multiHistory.push({role:'assistant', content:result});
     state.multiReadingText = result;
     document.getElementById('multiReadingText').textContent = result;
@@ -929,10 +933,10 @@ if (sessionStorage.getItem('tarot_access') === '1') {
   document.getElementById('accessGate').style.display = 'none';
 }
 
-function callAI(systemPrompt, messages) {
+function callAI(systemPrompt, messages, onChunk) {
   // 优先使用内置 Worker（无需用户配置）
   if (BUILTIN_WORKER_URL) {
-    return callBuiltinWorker(systemPrompt, messages);
+    return callBuiltinWorker(systemPrompt, messages, onChunk);
   }
   // 否则使用用户自己配置的接口
   if (cfg.provider === 'anthropic') {
@@ -995,7 +999,7 @@ function getModelByLocation() {
   return 'google/gemini-2.0-flash-001';  // 其他地区用 Gemini
 }
 
-function callBuiltinWorker(systemPrompt, messages) {
+function callBuiltinWorker(systemPrompt, messages, onChunk) {
   var model = getModelByLocation();
   var headers = { 'Content-Type': 'application/json' };
   if (BUILTIN_ACCESS_SECRET) headers['X-Access-Secret'] = BUILTIN_ACCESS_SECRET;
@@ -1005,6 +1009,7 @@ function callBuiltinWorker(systemPrompt, messages) {
     body: JSON.stringify({
       model: model,
       max_tokens: 1500,
+      stream: false,
       messages: [{role:'system', content:systemPrompt}].concat(messages)
     })
   }).then(function(r) {
@@ -1017,7 +1022,18 @@ function callBuiltinWorker(systemPrompt, messages) {
     return r.json();
   }).then(function(data) {
     if (data.error) throw new Error(data.error.message||'请求失败');
-    return data.choices&&data.choices[0]&&data.choices[0].message&&data.choices[0].message.content || '';
+    var text = data.choices&&data.choices[0]&&data.choices[0].message&&data.choices[0].message.content || '';
+    // 模拟打字机效果逐字显示
+    if (onChunk && text) {
+      var i = 0;
+      var step = Math.max(1, Math.floor(text.length / 80));
+      var timer = setInterval(function() {
+        i += step;
+        if (i >= text.length) { i = text.length; clearInterval(timer); }
+        onChunk(text.slice(0, i));
+      }, 16);
+    }
+    return text;
   });
 }
 
