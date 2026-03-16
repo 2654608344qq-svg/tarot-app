@@ -374,15 +374,7 @@ function saveSettings() {
   var isGeminiSelected = document.getElementById('modelCardGemini').classList.contains('selected');
   manualModel = isGeminiSelected ? 'gemini' : 'deepseek';
   localStorage.setItem('t_manual_model', manualModel);
-  closeSettings();
-  alert('✅ 设置已保存！');
-}
-function updateSettingsBtn() {
-  var btn = document.getElementById('settingsBtn');
-  btn.textContent = '⚙️ 设置';
-  btn.style.background = 'rgba(200,210,240,.6)';
-}
-updateSettingsBtn();
+ 
  
  
   closeSettings();
@@ -967,4 +959,3 @@ function callBuiltinWorker(systemPrompt, messages, onChunk) {
 </script>
 </body>
 </html>
- 
