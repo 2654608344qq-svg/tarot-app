@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>塔罗占卜</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#dde8f0;--gold:#c9a84c;--gold-light:#e8d5a3;--gold-dark:#8b6914;--text:#2c2c3e;--text-light:#666;--shadow:0 4px 24px rgba(100,80,40,0.13);--radius:18px;--panel:rgba(255,255,255,0.72);--border:rgba(201,168,76,0.25)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Serif SC',serif;background:var(--bg);min-height:100vh;color:var(--text);background-image:radial-gradient(ellipse at 20% 20%,rgba(201,168,76,.08) 0%,transparent 60%),radial-gradient(ellipse at 80% 80%,rgba(180,160,220,.10) 0%,transparent 60%)}
+
+/* ── 访问密钥门 ── */
+.access-gate{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;
+  background:linear-gradient(135deg,#1a1030 0%,#0d1a2e 50%,#1a0a2e 100%)}
+.access-gate::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 40%,rgba(201,168,76,.12) 0%,transparent 65%)}
+.gate-card{background:rgba(255,255,255,.07);border:1.5px solid rgba(201,168,76,.3);border-radius:24px;padding:40px 32px;width:100%;max-width:360px;text-align:center;backdrop-filter:blur(20px);box-shadow:0 20px 60px rgba(0,0,0,.5),0 0 80px rgba(201,168,76,.08);position:relative;animation:gateIn .6s ease}
+@keyframes gateIn{from{opacity:0;transform:translateY(30px) scale(.95)}to{opacity:1;transform:none}}
+.gate-star{font-size:48px;margin-bottom:12px;display:block;filter:drop-shadow(0 0 20px rgba(201,168,76,.6))}
+.gate-title{font-size:26px;font-weight:700;color:#f0d890;margin-bottom:6px;letter-spacing:3px}
+.gate-sub{font-size:13px;color:rgba(201,168,76,.6);margin-bottom:28px;letter-spacing:1px}
+.gate-input-wrap{position:relative;margin-bottom:16px}
+.gate-input{width:100%;padding:13px 46px 13px 18px;background:rgba(255,255,255,.08);border:1.5px solid rgba(201,168,76,.3);border-radius:12px;font-size:15px;color:#fff;font-family:'Noto Serif SC',serif;outline:none;transition:all .2s;letter-spacing:2px}
+.gate-input:focus{border-color:rgba(201,168,76,.7);background:rgba(255,255,255,.12);box-shadow:0 0 0 3px rgba(201,168,76,.15)}
+.gate-input::placeholder{color:rgba(255,255,255,.3);letter-spacing:1px}
+.gate-eye{position:absolute;right:14px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:18px;color:rgba(201,168,76,.5);transition:color .2s;background:none;border:none;padding:0}
+.gate-eye:hover{color:rgba(201,168,76,.9)}
+.gate-btn{width:100%;padding:13px;background:linear-gradient(135deg,#e8d5a3,#c9a84c);border:none;border-radius:12px;font-size:16px;font-weight:700;color:#3a2800;cursor:pointer;font-family:'Noto Serif SC',serif;transition:all .2s;box-shadow:0 4px 20px rgba(201,168,76,.3);letter-spacing:2px}
+.gate-btn:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(201,168,76,.5)}
+.gate-btn:active{transform:none}
+.gate-error{color:#ff8080;font-size:13px;margin-top:10px;min-height:20px;transition:all .2s}
+.gate-error.shake{animation:shake .4s ease}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+.gate-hint{font-size:11.5px;color:rgba(255,255,255,.2);margin-top:20px;line-height:1.7}
+
+.app{max-width:700px;margin:0 auto;padding:18px 14px 80px}
+.topbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+.topbar-item{background:var(--panel);border:1.5px solid var(--border);border-radius:30px;padding:7px 16px;font-size:13px;color:var(--text);backdrop-filter:blur(8px);white-space:nowrap;cursor:pointer;transition:all .2s;box-shadow:0 2px 8px rgba(0,0,0,.07)}
+.topbar-item:hover{background:rgba(255,255,255,.9)}
+.mode-tabs{display:flex;gap:16px;margin-bottom:22px}
+.mode-tab{flex:1;padding:15px;background:rgba(255,255,255,.5);border:2px solid transparent;border-radius:var(--radius);font-size:17px;font-weight:600;cursor:pointer;text-align:center;transition:all .25s;color:var(--text);box-shadow:var(--shadow);font-family:'Noto Serif SC',serif}
+.mode-tab.active{background:var(--gold-light);border-color:var(--gold);color:var(--gold-dark)}
+.mode-tab:not(.active):hover{background:rgba(255,255,255,.75)}
+.panel{background:var(--panel);border-radius:var(--radius);padding:20px 18px;margin-bottom:16px;border:1.5px solid var(--border);box-shadow:var(--shadow);backdrop-filter:blur(8px)}
+.spread-dots{display:flex;gap:11px;flex-wrap:wrap;margin:10px 0 12px}
+.spread-dot{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;border:2px solid transparent;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+.spread-dot:nth-child(1){background:#f2b8c6}.spread-dot:nth-child(2){background:#f2e8b8}.spread-dot:nth-child(3){background:#b8f2d4}.spread-dot:nth-child(4){background:#b8d4f2}.spread-dot:nth-child(5){background:#d4b8f2}.spread-dot:nth-child(6){background:#c8d8e8}.spread-dot:nth-child(7){background:#f2cdb8}
+.spread-dot.selected{border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,168,76,.35);transform:scale(1.1)}
+.spread-notes{font-size:12px;color:var(--text-light);line-height:1.9}
+.question-input{width:100%;background:#fffef0;border:1.5px solid #e8d890;border-radius:12px;padding:11px 14px;font-family:'Noto Serif SC',serif;font-size:15px;color:var(--text);outline:none;resize:none;min-height:50px;transition:border .2s}
+.question-input:focus{border-color:var(--gold)}
+.question-hint{font-size:11.5px;color:var(--text-light);margin-top:4px}
+.btn{display:inline-flex;align-items:center;justify-content:center;padding:10px 38px;border-radius:30px;border:none;font-family:'Noto Serif SC',serif;font-size:15px;font-weight:600;cursor:pointer;transition:all .2s;box-shadow:0 3px 12px rgba(0,0,0,.12)}
+.btn-draw{background:linear-gradient(135deg,#e8d5a3,#c9a84c);color:#5a3e00;margin:0 auto;display:block}
+.btn-draw:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(201,168,76,.4)}
+.btn-read{background:linear-gradient(135deg,#d0e8d0,#88b888);color:#1a4a1a}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none!important}
+.card-area{display:flex;justify-content:center;align-items:center;min-height:190px;padding:10px}
+.tarot-card{width:130px;border-radius:13px;overflow:hidden;box-shadow:0 8px 30px rgba(0,0,0,.2);transition:all .3s;cursor:pointer;background:#2a1a4e;animation:cardReveal .5s ease backwards;position:relative}
+.tarot-card:hover{transform:translateY(-6px) scale(1.03)}
+@keyframes cardReveal{from{opacity:0;transform:translateY(20px) rotate(-3deg)}to{opacity:1;transform:none}}
+.card-back{width:100%;aspect-ratio:3/5;background:linear-gradient(135deg,#1a0a3e,#3d1a70,#0a1a4e);display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.card-back::after{content:'';position:absolute;inset:5px;border:1px solid rgba(201,168,76,.25);border-radius:7px}
+.card-name-tag{position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.65);color:#f0d890;font-size:10px;text-align:center;padding:4px;font-family:'Noto Serif SC',serif}
+.card-reversed-tag{position:absolute;top:5px;right:5px;background:rgba(180,60,60,.85);color:#fff;font-size:9px;border-radius:5px;padding:2px 4px}
+.card-slot{display:flex;flex-direction:column;align-items:center}
+.card-label{font-size:11px;text-align:center;color:var(--text-light);margin-top:4px;font-weight:500}
+.multi-card-area{display:flex;flex-wrap:wrap;justify-content:center;gap:14px;padding:8px}
+.card-placeholder{width:140px;height:200px;background:#d8dce0;border-radius:13px;display:flex;align-items:center;justify-content:center;color:#aaa;font-size:13px;border:2px dashed #c0c4c8}
+.reading-panel{background:var(--panel);border:1.5px solid var(--border);border-radius:var(--radius);padding:16px;min-height:110px;box-shadow:var(--shadow);backdrop-filter:blur(8px);margin-bottom:14px}
+.reading-label{font-size:12px;color:var(--text-light);margin-bottom:8px}
+.reading-content{font-size:14.5px;line-height:1.85;color:var(--text);white-space:pre-wrap}
+.reading-content.streaming::after{content:'▋';animation:blink .7s infinite;color:var(--gold)}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+.chat-area{background:var(--panel);border:1.5px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);backdrop-filter:blur(8px)}
+.chat-messages{max-height:280px;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px}
+.chat-bubble{max-width:85%;padding:9px 13px;border-radius:15px;font-size:13.5px;line-height:1.7;animation:bubbleIn .3s ease}
+@keyframes bubbleIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.chat-bubble.user{background:var(--gold-light);color:var(--gold-dark);align-self:flex-end;border-bottom-right-radius:4px}
+.chat-bubble.ai{background:#fff;color:var(--text);align-self:flex-start;border-bottom-left-radius:4px;box-shadow:0 2px 8px rgba(0,0,0,.07);white-space:pre-wrap}
+.chat-input-row{display:flex;align-items:center;gap:9px;padding:11px 13px;border-top:1.5px solid var(--border);background:rgba(255,255,255,.5)}
+.chat-input{flex:1;background:transparent;border:none;outline:none;font-family:'Noto Serif SC',serif;font-size:13.5px;color:var(--text)}
+.chat-input::placeholder{color:#bbb}
+.chat-send-btn{width:34px;height:34px;border-radius:50%;border:none;background:var(--gold);color:#fff;font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0}
+.chat-send-btn:hover{background:var(--gold-dark);transform:scale(1.08)}
+.spinner{width:26px;height:26px;border:3px solid #e8d5a3;border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite;margin:8px auto;display:none}
+@keyframes spin{to{transform:rotate(360deg)}}
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:center;justify-content:center;padding:16px}
+.modal-bg.open{display:flex}
+.modal{background:#fff;border-radius:20px;padding:24px 22px;width:100%;max-width:420px;box-shadow:0 12px 50px rgba(0,0,0,.25);max-height:90vh;overflow-y:auto}
+.modal h3{font-size:17px;margin-bottom:14px;color:var(--text)}
+.modal p{font-size:12.5px;color:#888;line-height:1.7;margin-bottom:8px}
+.modal label{font-size:12px;color:var(--text-light);display:block;margin-bottom:4px;margin-top:10px}
+.modal input,.modal select{width:100%;padding:9px 13px;border:1.5px solid #ddd;border-radius:10px;font-size:14px;font-family:'Noto Serif SC',serif;outline:none;transition:border .2s;background:#fafafa}
+.modal input:focus,.modal select:focus{border-color:var(--gold)}
+.modal-btns{display:flex;gap:9px;margin-top:16px}
+.modal-btns button{flex:1;padding:10px;border-radius:11px;border:none;font-family:'Noto Serif SC',serif;font-size:14px;cursor:pointer;font-weight:600;transition:all .2s}
+.btn-confirm{background:var(--gold-light);color:var(--gold-dark)}
+.btn-gps{background:#e8f0e8;color:#2a5a2a}
+.btn-cancel{background:#f0f0f0;color:#666}
+.modal-section{border-top:1px solid #eee;padding-top:14px;margin-top:14px}
+.modal-section h4{font-size:13.5px;color:var(--text);margin-bottom:8px}
+.proxy-box{margin-top:12px;padding:12px;background:#fffbf0;border-radius:10px;border:1px solid #e8d890}
+.proxy-box-title{font-size:12.5px;font-weight:600;color:var(--gold-dark);margin-bottom:6px}
+.proxy-tutorial{display:none;margin-top:10px;padding:10px;background:#f8f4e8;border-radius:8px;font-size:12px;line-height:1.9;color:#555}
+.tutorial-toggle{font-size:12px;color:var(--gold-dark);cursor:pointer;margin-top:8px;text-decoration:underline}
+.copy-btn{background:var(--gold-light);border:1px solid var(--gold);border-radius:8px;padding:6px 14px;font-size:12px;cursor:pointer;font-family:'Noto Serif SC',serif;color:var(--gold-dark);font-weight:600}
+.history-page{display:none}
+.history-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.history-header h2{font-size:18px;color:var(--text)}
+.history-back{background:var(--panel);border:1.5px solid var(--border);border-radius:20px;padding:7px 16px;font-size:13px;cursor:pointer;font-family:'Noto Serif SC',serif;transition:all .2s}
+.history-empty{text-align:center;color:var(--text-light);padding:40px 0;font-size:15px}
+.history-item{background:var(--panel);border:1.5px solid var(--border);border-radius:16px;padding:16px;margin-bottom:12px;box-shadow:var(--shadow);backdrop-filter:blur(8px);cursor:pointer;transition:all .2s}
+.history-item:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(100,80,40,.18)}
+.history-item-header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px}
+.history-item-title{font-size:14px;font-weight:600;color:var(--text);flex:1}
+.history-item-date{font-size:11px;color:var(--text-light);white-space:nowrap;flex-shrink:0}
+.history-card-chip{background:rgba(201,168,76,.15);border:1px solid rgba(201,168,76,.35);border-radius:20px;padding:2px 9px;font-size:11px;color:var(--gold-dark)}
+.history-item-preview{font-size:12.5px;color:var(--text-light);line-height:1.6;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.history-delete-btn{background:rgba(220,100,100,.12);border:1px solid rgba(220,100,100,.25);color:#c04040;border-radius:8px;padding:4px 10px;font-size:12px;cursor:pointer;font-family:'Noto Serif SC',serif;transition:all .2s}
+.history-clear-btn{background:rgba(220,100,100,.08);border:1.5px solid rgba(220,100,100,.2);color:#c04040;border-radius:20px;padding:7px 16px;font-size:13px;cursor:pointer;font-family:'Noto Serif SC',serif;transition:all .2s}
+.save-reading-btn{display:flex;align-items:center;gap:6px;background:rgba(201,168,76,.15);border:1.5px solid rgba(201,168,76,.4);border-radius:20px;padding:7px 16px;font-size:13px;color:var(--gold-dark);cursor:pointer;font-family:'Noto Serif SC',serif;transition:all .2s;margin:8px auto 0;width:fit-content}
+.save-reading-btn:hover{background:rgba(201,168,76,.25)}
+.save-reading-btn.saved{background:rgba(180,230,180,.3);border-color:rgba(100,180,100,.4);color:#2a7a2a}
+.detail-cards-row{display:flex;gap:10px;flex-wrap:wrap;margin:8px 0}
+.detail-card-item{background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.3);border-radius:12px;padding:6px 12px;font-size:13px;color:var(--text)}
+.detail-reading{background:#fffef8;border:1px solid #e8d890;border-radius:12px;padding:14px;margin-top:8px;font-size:13.5px;line-height:1.8;color:var(--text);white-space:pre-wrap;max-height:280px;overflow-y:auto}
+.detail-chat-item{margin-bottom:8px}
+.detail-chat-q{font-size:12.5px;font-weight:600;color:var(--gold-dark);margin-bottom:2px}
+.detail-chat-a{font-size:12.5px;color:var(--text);line-height:1.6;padding-left:10px;border-left:2px solid var(--gold-light)}
+</style>
+</head>
+<body>
+
+<!-- ── 访问密钥门 ── -->
+<div class="access-gate" id="accessGate">
+  <div class="gate-card">
+    <span class="gate-star">✦</span>
+    <div class="gate-title">塔罗占卜</div>
+    <div class="gate-sub">请输入访问密钥</div>
+    <div class="gate-input-wrap">
+      <input class="gate-input" type="password" id="gateInput" placeholder="输入密钥..." onkeydown="if(event.key==='Enter')checkAccess()">
+      <button class="gate-eye" id="gateEye" onclick="toggleGateEye()">👁</button>
+    </div>
+    <button class="gate-btn" onclick="checkAccess()">进　入</button>
+    <div class="gate-error" id="gateError"></div>
+    <div class="gate-hint">此页面需要密钥才能访问<br>请联系管理员获取</div>
+  </div>
+</div>
+<div class="app">
+  <div class="topbar">
+    <div class="topbar-item" id="timeDisplay">加载中...</div>
+    <div class="topbar-item" id="weekDisplay">--</div>
+    <div class="topbar-item" id="locationBtn" onclick="openLocationModal()">📍 地区</div>
+    <div class="topbar-item" id="weatherDisplay">🌤 天气</div>
+    <div class="topbar-item" id="historyTopBtn" onclick="showHistory()" style="background:rgba(200,210,240,.6)">📜 历史</div>
+    <div class="topbar-item" id="settingsBtn" onclick="openSettings()">⚙️ 设置</div>
+  </div>
+
+  <div id="mainContent">
+    <div class="mode-tabs">
+      <button class="mode-tab active" id="tabSingle" onclick="switchMode('single')">单张牌阵</button>
+      <button class="mode-tab" id="tabMulti" onclick="switchMode('multi')">万用牌阵</button>
+    </div>
+
+    <div id="singleMode">
+      <div class="panel">
+        <div style="font-size:14px;color:var(--text-light);margin-bottom:8px"><span style="color:var(--text);font-weight:600;margin-right:6px">请选择：</span></div>
+        <div class="spread-dots" id="singleDots">
+          <div class="spread-dot selected" onclick="selectSingle(1,this)">1</div>
+          <div class="spread-dot" onclick="selectSingle(2,this)">2</div>
+          <div class="spread-dot" onclick="selectSingle(3,this)">3</div>
+          <div class="spread-dot" onclick="selectSingle(4,this)">4</div>
+          <div class="spread-dot" onclick="selectSingle(5,this)">5</div>
+          <div class="spread-dot" onclick="selectSingle(6,this)">6</div>
+        </div>
+        <div class="spread-notes">备注：<br>1：今日运势 &nbsp; 2：本月运势 &nbsp; 3：个人状态/状况<br>4：具体事情发展阶段 &nbsp; 5：任何事都起因（原因）<br>6：本周运势（连续抽七张，按照周一到周日依次排开）</div>
+      </div>
+      <div class="panel">
+        <div style="font-size:14px;color:var(--text-light);margin-bottom:7px;font-weight:600">请输入问题：</div>
+        <textarea class="question-input" id="singleQuestion" placeholder="在此输入你的问题..." rows="2"></textarea>
+        <div class="question-hint">（今日运势、本月运势可不填）</div>
+      </div>
+      <div style="text-align:center;margin:8px 0">
+        <button class="btn btn-draw" onclick="drawSingleCards()">抽　取</button>
+      </div>
+      <div class="panel" id="singleCardArea" style="display:none">
+        <div id="singleCardContent" class="card-area"><div class="card-placeholder">塔罗牌</div></div>
+      </div>
+      <div style="text-align:center;margin:8px 0">
+        <button class="btn btn-read" id="singleReadBtn" onclick="readSingle()" disabled>解　读</button>
+      </div>
+      <div class="reading-panel">
+        <div class="reading-label">解读内容：</div>
+        <div class="reading-content" id="singleReadingText"></div>
+        <div class="spinner" id="singleSpinner"></div>
+      </div>
+      <div id="singleSaveBtnWrap" style="display:none">
+        <button class="save-reading-btn" id="singleSaveBtn" onclick="saveCurrentReading('single')">🔖 保存此次占卜记录</button>
+      </div>
+      <div class="chat-area">
+        <div class="chat-messages" id="singleMessages"></div>
+        <div class="chat-input-row">
+          <input class="chat-input" id="singleChatInput" placeholder="还有什么想问的可以输入内容：" onkeydown="chatKeydown(event,'single')">
+          <button class="chat-send-btn" onclick="sendChat('single')">↑</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="multiMode" style="display:none">
+      <div class="panel">
+        <div style="font-size:14px;color:var(--text-light);margin-bottom:8px"><span style="color:var(--text);font-weight:600;margin-right:6px">请选择：</span></div>
+        <div class="spread-dots" id="multiDots">
+          <div class="spread-dot selected" onclick="selectMulti(1,this)">1</div>
+          <div class="spread-dot" onclick="selectMulti(2,this)">2</div>
+          <div class="spread-dot" onclick="selectMulti(3,this)">3</div>
+          <div class="spread-dot" onclick="selectMulti(4,this)">4</div>
+          <div class="spread-dot" onclick="selectMulti(5,this)">5</div>
+          <div class="spread-dot" onclick="selectMulti(6,this)">6</div>
+          <div class="spread-dot" onclick="selectMulti(7,this)">7</div>
+        </div>
+        <div class="spread-notes">备注：<br>1：时间流：过去、现在、未来 &nbsp; 2：身心灵：身体、心灵、精神<br>3：发展、阻碍、建议 &nbsp; 4：发展、想法、建议 &nbsp; 5：核心、发展、建议<br>6：工作、稳定、改变 &nbsp; 7：是与否牌阵（三正为是，一逆二正有变数，一正二逆/三逆为否）</div>
+      </div>
+      <div class="panel">
+        <div style="font-size:14px;color:var(--text-light);margin-bottom:7px;font-weight:600">请输入问题：</div>
+        <textarea class="question-input" id="multiQuestion" placeholder="在此输入你的问题..." rows="2"></textarea>
+      </div>
+      <div style="text-align:center;margin:8px 0">
+        <button class="btn btn-draw" onclick="drawMultiCards()">抽　取</button>
+      </div>
+      <div class="panel" id="multiCardArea" style="display:none">
+        <div class="multi-card-area" id="multiCardContent"></div>
+      </div>
+      <div style="text-align:center;margin:8px 0">
+        <button class="btn btn-read" id="multiReadBtn" onclick="readMulti()" disabled>解　读</button>
+      </div>
+      <div class="reading-panel">
+        <div class="reading-label">解读内容：</div>
+        <div class="reading-content" id="multiReadingText"></div>
+        <div class="spinner" id="multiSpinner"></div>
+      </div>
+      <div id="multiSaveBtnWrap" style="display:none">
+        <button class="save-reading-btn" id="multiSaveBtn" onclick="saveCurrentReading('multi')">🔖 保存此次占卜记录</button>
+      </div>
+      <div class="chat-area">
+        <div class="chat-messages" id="multiMessages"></div>
+        <div class="chat-input-row">
+          <input class="chat-input" id="multiChatInput" placeholder="还有什么想问的可以输入内容：" onkeydown="chatKeydown(event,'multi')">
+          <button class="chat-send-btn" onclick="sendChat('multi')">↑</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="historyPage" class="history-page">
+    <div class="history-header">
+      <h2>📜 占卜历史记录</h2>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="history-clear-btn" onclick="clearAllHistory()">清空全部</button>
+        <button class="history-back" onclick="hideHistory()">← 返回</button>
+      </div>
+    </div>
+    <div id="historyList"></div>
+  </div>
+</div>
+
+<!-- LOCATION MODAL -->
+<div class="modal-bg" id="locationModal">
+  <div class="modal">
+    <h3>📍 设置地区</h3>
+    <label>城市名称</label>
+    <input type="text" id="locationInput" placeholder="输入城市名称，如：北京、上海、Singapore">
+    <div class="modal-btns">
+      <button class="btn-confirm" onclick="confirmLocation()">确认</button>
+      <button class="btn-gps" onclick="getGPS()">📡 GPS定位</button>
+      <button class="btn-cancel" onclick="closeLocationModal()">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- SETTINGS MODAL -->
+<div class="modal-bg" id="settingsModal">
+  <div class="modal" style="max-width:460px">
+    <h3>⚙️ 设置</h3>
+    <div>
+      <h4 style="font-size:13.5px;color:var(--text);margin-bottom:8px">🤖 AI 接口选择</h4>
+      <label>接口类型</label>
+      <select id="apiProvider" onchange="onProviderChange()">
+        <option value="anthropic">Anthropic（Claude 官方）</option>
+        <option value="openrouter">OpenRouter（支持多种模型）</option>
+      </select>
+    </div>
+
+    <div id="anthropicSettings" class="modal-section">
+      <h4>Anthropic 设置</h4>
+      <p>前往 <a href="https://console.anthropic.com" target="_blank" style="color:var(--gold-dark)">console.anthropic.com</a> 获取 Key（以 sk-ant- 开头）</p>
+      <label>API Key</label>
+      <input type="password" id="anthropicKeyInput" placeholder="sk-ant-api03-..." autocomplete="off">
+      <label>模型</label>
+      <select id="anthropicModel">
+        <option value="claude-opus-4-5">claude-opus-4-5（最强）</option>
+        <option value="claude-sonnet-4-5">claude-sonnet-4-5（均衡）</option>
+        <option value="claude-haiku-4-5">claude-haiku-4-5（快速）</option>
+      </select>
+      <div class="proxy-box">
+        <div class="proxy-box-title">🌐 代理设置（解决地区限制）</div>
+        <p style="margin:0 0 8px">若直连受限，可填入 Cloudflare Worker 代理地址（留空则直连）</p>
+        <label>代理地址（可选）</label>
+        <input type="text" id="anthropicProxy" placeholder="https://your-worker.workers.dev">
+        <div class="tutorial-toggle" onclick="toggleTutorial('ant')">📖 查看代理搭建教程 ▼</div>
+        <div class="proxy-tutorial" id="antTutorial">
+          <b>1.</b> 注册 <a href="https://dash.cloudflare.com" target="_blank" style="color:var(--gold-dark)">Cloudflare</a> 免费账号<br>
+          <b>2.</b> Workers &amp; Pages → Create → Create Worker<br>
+          <b>3.</b> 删除默认代码，粘贴下方代码，点 Save and Deploy<br>
+          <b>4.</b> 复制 Worker URL 填入代理地址<br><br>
+          <button class="copy-btn" onclick="copyCode('ant')">📋 复制 Anthropic 代理代码</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="openrouterSettings" class="modal-section" style="display:none">
+      <h4>OpenRouter 设置</h4>
+      <p>前往 <a href="https://openrouter.ai/keys" target="_blank" style="color:var(--gold-dark)">openrouter.ai/keys</a> 获取 Key（以 sk-or- 开头）</p>
+      <label>API Key</label>
+      <input type="password" id="openrouterKeyInput" placeholder="sk-or-v1-..." autocomplete="off">
+      <label>模型 ID（可自由填写）</label>
+      <input type="text" id="openrouterModel" placeholder="anthropic/claude-sonnet-4-5 或 deepseek/deepseek-chat">
+      <p style="margin-top:4px;font-size:11px">全部模型：<a href="https://openrouter.ai/models" target="_blank" style="color:var(--gold-dark)">openrouter.ai/models</a></p>
+      <div class="proxy-box">
+        <div class="proxy-box-title">🌐 代理设置（解决 Anthropic 模型地区限制）</div>
+        <p style="margin:0 0 8px">若使用 anthropic/claude-* 模型被封锁，可填入代理地址（留空则直连）</p>
+        <label>代理地址（可选）</label>
+        <input type="text" id="openrouterProxy" placeholder="https://your-worker.workers.dev">
+        <div class="tutorial-toggle" onclick="toggleTutorial('or')">📖 查看代理搭建教程 ▼</div>
+        <div class="proxy-tutorial" id="orTutorial">
+          <b>1.</b> 注册 <a href="https://dash.cloudflare.com" target="_blank" style="color:var(--gold-dark)">Cloudflare</a> 免费账号<br>
+          <b>2.</b> Workers &amp; Pages → Create → Create Worker<br>
+          <b>3.</b> 删除默认代码，粘贴下方代码，点 Save and Deploy<br>
+          <b>4.</b> 复制 Worker URL 填入代理地址<br><br>
+          <button class="copy-btn" onclick="copyCode('or')">📋 复制 OpenRouter 代理代码</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-btns">
+      <button class="btn-confirm" onclick="saveSettings()">保存设置</button>
+      <button class="btn-cancel" onclick="closeSettings()">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- DETAIL MODAL -->
+<div class="modal-bg" id="detailModal">
+  <div class="modal" style="max-width:500px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <h3 id="detailTitle" style="font-size:16px">占卜详情</h3>
+      <button onclick="closeDetail()" style="background:none;border:none;font-size:22px;cursor:pointer;color:#999;line-height:1">×</button>
+    </div>
+    <div id="detailContent"></div>
+    <div class="modal-btns"><button class="btn-cancel" onclick="closeDetail()">关闭</button></div>
+  </div>
+</div>
+
+<script>
+// ── CONFIG ──────────────────────────────────────────────────
+var cfg = {
+  provider: localStorage.getItem('t_provider') || 'anthropic',
+  anthropicKey: localStorage.getItem('t_ant_key') || '',
+  anthropicModel: localStorage.getItem('t_ant_model') || 'claude-opus-4-5',
+  anthropicProxy: localStorage.getItem('t_ant_proxy') || '',
+  openrouterKey: localStorage.getItem('t_or_key') || '',
+  openrouterModel: localStorage.getItem('t_or_model') || 'anthropic/claude-sonnet-4-5',
+  openrouterProxy: localStorage.getItem('t_or_proxy') || ''
+};
+
+// Worker code stored as plain arrays to avoid backtick conflicts
+var ANT_WORKER = [
+  'export default {',
+  '  async fetch(request) {',
+  '    if (request.method === "OPTIONS") {',
+  '      return new Response(null, { headers: {',
+  '        "Access-Control-Allow-Origin": "*",',
+  '        "Access-Control-Allow-Methods": "POST, OPTIONS",',
+  '        "Access-Control-Allow-Headers": "*" } });',
+  '    }',
+  '    var url = new URL(request.url);',
+  '    var target = "https://api.anthropic.com" + url.pathname + url.search;',
+  '    var resp = await fetch(new Request(target, {',
+  '      method: request.method,',
+  '      headers: request.headers,',
+  '      body: request.body',
+  '    }));',
+  '    var out = new Response(resp.body, resp);',
+  '    out.headers.set("Access-Control-Allow-Origin", "*");',
+  '    out.headers.set("Access-Control-Allow-Headers", "*");',
+  '    return out;',
+  '  }',
+  '};'
+].join('\n');
+
+var OR_WORKER = [
+  'export default {',
+  '  async fetch(request) {',
+  '    if (request.method === "OPTIONS") {',
+  '      return new Response(null, { headers: {',
+  '        "Access-Control-Allow-Origin": "*",',
+  '        "Access-Control-Allow-Methods": "POST, OPTIONS",',
+  '        "Access-Control-Allow-Headers": "*" } });',
+  '    }',
+  '    var resp = await fetch("https://openrouter.ai/api/v1/chat/completions", {',
+  '      method: "POST",',
+  '      headers: request.headers,',
+  '      body: request.body',
+  '    });',
+  '    var out = new Response(resp.body, resp);',
+  '    out.headers.set("Access-Control-Allow-Origin", "*");',
+  '    out.headers.set("Access-Control-Allow-Headers", "*");',
+  '    return out;',
+  '  }',
+  '};'
+].join('\n');
+
+function openSettings() {
+  document.getElementById('apiProvider').value = cfg.provider;
+  document.getElementById('anthropicKeyInput').value = cfg.anthropicKey;
+  document.getElementById('anthropicModel').value = cfg.anthropicModel;
+  document.getElementById('anthropicProxy').value = cfg.anthropicProxy;
+  document.getElementById('openrouterKeyInput').value = cfg.openrouterKey;
+  document.getElementById('openrouterModel').value = cfg.openrouterModel;
+  document.getElementById('openrouterProxy').value = cfg.openrouterProxy;
+  onProviderChange();
+  document.getElementById('settingsModal').classList.add('open');
+}
+function closeSettings() { document.getElementById('settingsModal').classList.remove('open'); }
+function onProviderChange() {
+  var p = document.getElementById('apiProvider').value;
+  document.getElementById('anthropicSettings').style.display = p === 'anthropic' ? 'block' : 'none';
+  document.getElementById('openrouterSettings').style.display = p === 'openrouter' ? 'block' : 'none';
+}
+function saveSettings() {
+  cfg.provider = document.getElementById('apiProvider').value;
+  cfg.anthropicKey = document.getElementById('anthropicKeyInput').value.trim();
+  cfg.anthropicModel = document.getElementById('anthropicModel').value;
+  cfg.anthropicProxy = document.getElementById('anthropicProxy').value.trim().replace(/\/+$/, '');
+  cfg.openrouterKey = document.getElementById('openrouterKeyInput').value.trim();
+  cfg.openrouterModel = document.getElementById('openrouterModel').value.trim();
+  cfg.openrouterProxy = document.getElementById('openrouterProxy').value.trim().replace(/\/+$/, '');
+  localStorage.setItem('t_provider', cfg.provider);
+  localStorage.setItem('t_ant_key', cfg.anthropicKey);
+  localStorage.setItem('t_ant_model', cfg.anthropicModel);
+  localStorage.setItem('t_ant_proxy', cfg.anthropicProxy);
+  localStorage.setItem('t_or_key', cfg.openrouterKey);
+  localStorage.setItem('t_or_model', cfg.openrouterModel);
+  localStorage.setItem('t_or_proxy', cfg.openrouterProxy);
+  updateSettingsBtn();
+  closeSettings();
+  alert('✅ 设置已保存！');
+}
+function updateSettingsBtn() {
+  var hasKey = cfg.provider === 'anthropic' ? !!cfg.anthropicKey : !!cfg.openrouterKey;
+  var btn = document.getElementById('settingsBtn');
+  btn.textContent = hasKey ? '⚙️ 已配置' : '⚙️ 设置';
+  btn.style.background = hasKey ? 'rgba(180,230,180,.7)' : 'rgba(255,200,180,.7)';
+}
+updateSettingsBtn();
+
+function toggleTutorial(type) {
+  var el = document.getElementById(type + 'Tutorial');
+  var open = el.style.display === 'none' || el.style.display === '';
+  el.style.display = open ? 'block' : 'none';
+}
+function copyCode(type) {
+  var code = type === 'ant' ? ANT_WORKER : OR_WORKER;
+  navigator.clipboard.writeText(code).then(function() {
+    alert('✅ 代码已复制！请粘贴到 Cloudflare Worker 编辑器中');
+  }).catch(function() {
+    var ta = document.createElement('textarea');
+    ta.value = code; document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); document.body.removeChild(ta);
+    alert('✅ 代码已复制！请粘贴到 Cloudflare Worker 编辑器中');
+  });
+}
+
+// ── TAROT DATA ───────────────────────────────────────────────
+var MAJOR = [
+  {id:0,name:'愚者'},{id:1,name:'魔术师'},{id:2,name:'女祭司'},{id:3,name:'女皇'},
+  {id:4,name:'皇帝'},{id:5,name:'教皇'},{id:6,name:'恋人'},{id:7,name:'战车'},
+  {id:8,name:'力量'},{id:9,name:'隐者'},{id:10,name:'命运之轮'},{id:11,name:'正义'},
+  {id:12,name:'倒吊人'},{id:13,name:'死神'},{id:14,name:'节制'},{id:15,name:'恶魔'},
+  {id:16,name:'塔'},{id:17,name:'星星'},{id:18,name:'月亮'},{id:19,name:'太阳'},
+  {id:20,name:'审判'},{id:21,name:'世界'}
+];
+var MAJOR_SYMBOLS = ['🌟','✨','🌙','🌺','👑','🏛️','❤️','🏆','🦁','🔦','🎡','⚖️','🙃','💀','🌊','😈','⚡','⭐','🌙','☀️','🎺','🌍'];
+var SUITS = ['权杖','圣杯','宝剑','星币'];
+var SUIT_SYMBOLS = {'权杖':'🔥','圣杯':'💧','宝剑':'⚔️','星币':'⭐'};
+var RANKS = ['王牌','二','三','四','五','六','七','八','九','十','侍从','骑士','皇后','国王'];
+var ALL_CARDS = MAJOR.map(function(c) { return {name:c.name, type:'major', id:c.id}; });
+SUITS.forEach(function(s) {
+  RANKS.forEach(function(r) {
+    ALL_CARDS.push({name:s+r, type:'minor', suit:s});
+  });
+});
+
+function getSymbol(card) {
+  if (card.type === 'major') return MAJOR_SYMBOLS[card.id] || '✨';
+  return SUIT_SYMBOLS[card.suit] || '✨';
+}
+
+// ── STATE ────────────────────────────────────────────────────
+var state = {
+  mode: 'single', singleType: 1, multiType: 1,
+  location: {city:'未知', lat:null, lon:null}, weather: '未知',
+  drawnSingle: [], drawnMulti: [],
+  singleHistory: [], multiHistory: [],
+  singleReadingText: '', multiReadingText: '',
+  singleChatLog: [], multiChatLog: []
+};
+
+// ── TIME ─────────────────────────────────────────────────────
+function updateTime() {
+  var now = new Date();
+  var days = ['日','一','二','三','四','五','六'];
+  document.getElementById('timeDisplay').textContent =
+    now.getFullYear()+'年'+(now.getMonth()+1)+'月'+now.getDate()+'日 '+
+    String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+  document.getElementById('weekDisplay').textContent = '星期'+days[now.getDay()];
+}
+updateTime(); setInterval(updateTime, 30000);
+
+// ── LOCATION & WEATHER ───────────────────────────────────────
+function openLocationModal() { document.getElementById('locationModal').classList.add('open'); }
+function closeLocationModal() { document.getElementById('locationModal').classList.remove('open'); }
+function confirmLocation() {
+  var city = document.getElementById('locationInput').value.trim();
+  if (!city) return;
+  state.location.city = city;
+  document.getElementById('locationBtn').textContent = '📍 ' + city;
+  closeLocationModal();
+  fetchWeatherByCity(city);
+}
+function getGPS() {
+  if (!navigator.geolocation) { alert('浏览器不支持定位'); return; }
+  document.getElementById('locationBtn').textContent = '📍 定位中...';
+  navigator.geolocation.getCurrentPosition(function(pos) {
+    var lat = pos.coords.latitude, lon = pos.coords.longitude;
+    state.location.lat = lat; state.location.lon = lon;
+    closeLocationModal();
+    fetch('https://nominatim.openstreetmap.org/reverse?lat='+lat+'&lon='+lon+'&format=json', {headers:{'Accept-Language':'zh'}})
+      .then(function(r){return r.json();})
+      .then(function(d){
+        var city = (d.address && (d.address.city||d.address.town||d.address.county||d.address.state)) || (lat.toFixed(2)+','+lon.toFixed(2));
+        state.location.city = city;
+        document.getElementById('locationBtn').textContent = '📍 ' + city;
+        fetchWeatherByCoords(lat, lon);
+      }).catch(function(){
+        document.getElementById('locationBtn').textContent = '📍 ' + lat.toFixed(2)+','+lon.toFixed(2);
+        fetchWeatherByCoords(lat, lon);
+      });
+  }, function(err) {
+    document.getElementById('locationBtn').textContent = '📍 定位失败';
+    alert('定位失败：' + (err.code===1?'请允许位置权限':err.code===2?'位置不可用':'超时，请手动输入'));
+  }, {timeout:10000, enableHighAccuracy:false});
+}
+var WDESC = {0:'晴天',1:'基本晴朗',2:'局部多云',3:'阴天',45:'有雾',48:'有雾',51:'小毛毛雨',53:'毛毛雨',55:'大毛毛雨',61:'小雨',63:'中雨',65:'大雨',71:'小雪',73:'中雪',75:'大雪',80:'阵雨',81:'中阵雨',82:'强阵雨',95:'雷雨',96:'雷暴',99:'强雷暴'};
+var WICON = {0:'☀️',1:'🌤',2:'⛅',3:'☁️',45:'🌫',48:'🌫',51:'🌦',53:'🌦',55:'🌧',61:'🌧',63:'🌧',65:'🌧',71:'🌨',73:'🌨',75:'❄️',80:'🌦',81:'🌧',82:'⛈',95:'⛈',96:'⛈',99:'⛈'};
+function fetchWeatherByCoords(lat, lon) {
+  fetch('https://api.open-meteo.com/v1/forecast?latitude='+lat+'&longitude='+lon+'&current=temperature_2m,weathercode&timezone=auto')
+    .then(function(r){return r.json();})
+    .then(function(d){
+      var code = d.current.weathercode, temp = Math.round(d.current.temperature_2m);
+      var desc = WDESC[code]||'未知', icon = WICON[code]||'🌡';
+      document.getElementById('weatherDisplay').textContent = icon+' '+desc+' '+temp+'°C';
+      state.weather = desc+' '+temp+'°C';
+    }).catch(function(){ document.getElementById('weatherDisplay').textContent = '🌤 获取失败'; });
+}
+function fetchWeatherByCity(city) {
+  fetch('https://geocoding-api.open-meteo.com/v1/search?name='+encodeURIComponent(city)+'&count=1&language=zh&format=json')
+    .then(function(r){return r.json();})
+    .then(function(d){
+      if (d.results && d.results[0]) {
+        state.location.lat = d.results[0].latitude; state.location.lon = d.results[0].longitude;
+        fetchWeatherByCoords(d.results[0].latitude, d.results[0].longitude);
+      } else document.getElementById('weatherDisplay').textContent = '🌤 城市未找到';
+    }).catch(function(){ document.getElementById('weatherDisplay').textContent = '🌤 获取失败'; });
+}
+// Auto IP location
+fetch('http://ip-api.com/json/?lang=zh-CN&fields=city,lat,lon,status')
+  .then(function(r){return r.json();})
+  .then(function(d){
+    if (d.status==='success' && d.city) {
+      state.location.city = d.city; state.location.lat = d.lat; state.location.lon = d.lon;
+      document.getElementById('locationBtn').textContent = '📍 ' + d.city;
+      fetchWeatherByCoords(d.lat, d.lon);
+    }
+  }).catch(function(){});
+
+// ── CARD DRAWING ─────────────────────────────────────────────
+function drawRandom(count) {
+  var deck = ALL_CARDS.slice(), drawn = [];
+  for (var i = 0; i < count; i++) {
+    var idx = Math.floor(Math.random() * deck.length);
+    var card = deck.splice(idx, 1)[0];
+    drawn.push(Object.assign({}, card, {reversed: Math.random() > 0.5}));
+  }
+  return drawn;
+}
+function renderCard(card, delay) {
+  var div = document.createElement('div');
+  div.className = 'tarot-card';
+  div.style.animationDelay = (delay||0) + 's';
+  if (card.reversed) div.style.transform = 'rotate(180deg)';
+  var sym = getSymbol(card);
+  div.innerHTML = '<div style="position:relative">'
+    + '<div class="card-back">'
+    + '<div style="font-size:30px;color:rgba(201,168,76,.9);text-shadow:0 0 15px rgba(201,168,76,.8)">'+sym+'</div>'
+    + '<div style="font-size:10px;color:rgba(201,168,76,.7);margin-top:5px;padding:0 6px;text-align:center">'+card.name+'</div>'
+    + '</div>'
+    + (card.reversed ? '<div class="card-reversed-tag">逆位</div>' : '')
+    + '<div class="card-name-tag">'+(card.reversed?'逆位·':'正位·')+card.name+'</div>'
+    + '</div>';
+  return div;
+}
+
+// ── SINGLE MODE ──────────────────────────────────────────────
+var singleType = 1;
+function selectSingle(n, el) {
+  singleType = n;
+  document.querySelectorAll('#singleDots .spread-dot').forEach(function(d){d.classList.remove('selected');});
+  el.classList.add('selected');
+  resetSingle();
+}
+function resetSingle() {
+  state.drawnSingle=[]; state.singleHistory=[]; state.singleReadingText=''; state.singleChatLog=[];
+  document.getElementById('singleCardArea').style.display = 'none';
+  document.getElementById('singleReadingText').textContent = '';
+  document.getElementById('singleReadBtn').disabled = true;
+  document.getElementById('singleMessages').innerHTML = '';
+  document.getElementById('singleSaveBtnWrap').style.display = 'none';
+  var sb = document.getElementById('singleSaveBtn'); sb.textContent='🔖 保存此次占卜记录'; sb.classList.remove('saved');
+}
+function drawSingleCards() {
+  resetSingle();
+  var count = singleType === 6 ? 7 : 1;
+  state.drawnSingle = drawRandom(count);
+  var area = document.getElementById('singleCardContent');
+  area.innerHTML = '';
+  document.getElementById('singleCardArea').style.display = 'block';
+  if (count === 1) {
+    area.className = 'card-area';
+    area.appendChild(renderCard(state.drawnSingle[0], 0));
+  } else {
+    area.className = ''; area.style.padding = '5px';
+    var topRow = document.createElement('div');
+    topRow.style.cssText = 'display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:9px';
+    var botRow = document.createElement('div');
+    botRow.style.cssText = 'display:grid;grid-template-columns:repeat(4,1fr);gap:9px';
+    var days = ['周一','周二','周三','周四','周五','周六','周日'];
+    state.drawnSingle.forEach(function(card, i) {
+      var slot = document.createElement('div'); slot.className = 'card-slot';
+      var c = renderCard(card, i*0.1); c.style.width = '100%';
+      var lbl = document.createElement('div'); lbl.className = 'card-label'; lbl.textContent = days[i];
+      slot.appendChild(c); slot.appendChild(lbl);
+      (i < 3 ? topRow : botRow).appendChild(slot);
+    });
+    area.appendChild(topRow); area.appendChild(botRow);
+  }
+  document.getElementById('singleReadBtn').disabled = false;
+}
+function readSingle() {
+  var question = document.getElementById('singleQuestion').value.trim();
+  var cardNames = state.drawnSingle.map(function(c){return c.name+'（'+(c.reversed?'逆位':'正位')+'）';}).join('、');
+  var typeLabels = ['','今日运势','本月运势','个人状态/状况','具体事情发展阶段','任何事都起因（原因）','本周运势'];
+  var now = new Date();
+  var days = ['日','一','二','三','四','五','六'];
+  var ctx = '时间：'+now.getFullYear()+'年'+(now.getMonth()+1)+'月'+now.getDate()+'日 星期'+days[now.getDay()]+'\n地点：'+state.location.city+'\n天气：'+state.weather+'\n牌阵：单张牌阵 - '+(typeLabels[singleType]||'')+'\n问题：'+(question||'（无特定问题）')+'\n抽到的牌：'+cardNames;
+  var sys = '你是一位资深的塔罗牌占卜师，精通韦特塔罗牌体系。结合时间、地点、天气、问题及牌义进行深度解读。解读时：1.介绍抽到的牌及含义（区分正逆位）2.结合环境个性化解读 3.如是周运势则逐日分析 4.语言温和有洞察力，用中文回答';
+  document.getElementById('singleReadingText').textContent = '';
+  document.getElementById('singleReadingText').classList.add('streaming');
+  document.getElementById('singleReadBtn').disabled = true;
+  document.getElementById('singleSpinner').style.display = 'block';
+  state.singleHistory = [{role:'user', content:'请根据以下信息进行塔罗牌解读：\n'+ctx}];
+  callAI(sys, state.singleHistory).then(function(result) {
+    state.singleHistory.push({role:'assistant', content:result});
+    state.singleReadingText = result;
+    document.getElementById('singleReadingText').textContent = result;
+    document.getElementById('singleReadingText').classList.remove('streaming');
+    document.getElementById('singleSpinner').style.display = 'none';
+    document.getElementById('singleReadBtn').disabled = false;
+    document.getElementById('singleSaveBtnWrap').style.display = 'block';
+  }).catch(function(e) {
+    document.getElementById('singleReadingText').textContent = '解读失败：' + e.message;
+    document.getElementById('singleReadingText').classList.remove('streaming');
+    document.getElementById('singleSpinner').style.display = 'none';
+    document.getElementById('singleReadBtn').disabled = false;
+  });
+}
+
+// ── MULTI MODE ───────────────────────────────────────────────
+var multiType = 1;
+function selectMulti(n, el) {
+  multiType = n;
+  document.querySelectorAll('#multiDots .spread-dot').forEach(function(d){d.classList.remove('selected');});
+  el.classList.add('selected');
+  resetMulti();
+}
+function resetMulti() {
+  state.drawnMulti=[]; state.multiHistory=[]; state.multiReadingText=''; state.multiChatLog=[];
+  document.getElementById('multiCardArea').style.display = 'none';
+  document.getElementById('multiReadingText').textContent = '';
+  document.getElementById('multiReadBtn').disabled = true;
+  document.getElementById('multiMessages').innerHTML = '';
+  document.getElementById('multiSaveBtnWrap').style.display = 'none';
+  var sb = document.getElementById('multiSaveBtn'); sb.textContent='🔖 保存此次占卜记录'; sb.classList.remove('saved');
+}
+function getMultiLabels(type) {
+  var m = {1:['过去','现在','未来'],2:['身体','心灵','精神'],3:['发展','阻碍','建议'],4:['发展','想法','建议'],5:['核心','发展','建议'],6:['工作','稳定','改变'],7:['牌一','牌二','牌三']};
+  return m[type] || ['牌一','牌二','牌三'];
+}
+function drawMultiCards() {
+  resetMulti();
+  state.drawnMulti = drawRandom(3);
+  var area = document.getElementById('multiCardContent');
+  area.innerHTML = '';
+  document.getElementById('multiCardArea').style.display = 'block';
+  var labels = getMultiLabels(multiType);
+  state.drawnMulti.forEach(function(card, i) {
+    var slot = document.createElement('div'); slot.className = 'card-slot';
+    var c = renderCard(card, i*0.12); c.style.width = '150px';
+    var lbl = document.createElement('div'); lbl.className = 'card-label'; lbl.textContent = labels[i]||('牌'+(i+1));
+    slot.appendChild(c); slot.appendChild(lbl);
+    area.appendChild(slot);
+  });
+  document.getElementById('multiReadBtn').disabled = false;
+}
+function readMulti() {
+  var question = document.getElementById('multiQuestion').value.trim();
+  var typeNames = {1:'时间流',2:'身心灵',3:'发展·阻碍·建议',4:'发展·想法·建议',5:'核心·发展·建议',6:'工作·稳定·改变',7:'是与否牌阵'};
+  var labels = getMultiLabels(multiType);
+  var cardDesc = state.drawnMulti.map(function(c,i){return labels[i]+'：'+c.name+'（'+(c.reversed?'逆位':'正位')+'）';}).join('\n');
+  var extra = '';
+  if (multiType === 7) {
+    var rev = state.drawnMulti.filter(function(c){return c.reversed;}).length;
+    extra = '\n判断：'+(rev===0?'是（三正）':rev===1?'有变数（一逆二正）':rev===2?'否（一正二逆）':'否（三逆）');
+  }
+  var now = new Date(); var days = ['日','一','二','三','四','五','六'];
+  var ctx = '时间：'+now.getFullYear()+'年'+(now.getMonth()+1)+'月'+now.getDate()+'日 星期'+days[now.getDay()]+'\n地点：'+state.location.city+'\n天气：'+state.weather+'\n牌阵：万用牌阵 - '+(typeNames[multiType]||'')+'\n问题：'+(question||'（无特定问题）')+'\n抽到的牌：\n'+cardDesc+extra;
+  var sys = '你是一位资深的塔罗牌占卜师，精通韦特塔罗牌体系，擅长三张牌阵深度解读。逐张分析每张牌的位置含义（区分正逆位），综合三张牌整体解读，结合时间天气地点个性化分析，给出具体建议，用中文回答。';
+  document.getElementById('multiReadingText').textContent = '';
+  document.getElementById('multiReadingText').classList.add('streaming');
+  document.getElementById('multiReadBtn').disabled = true;
+  document.getElementById('multiSpinner').style.display = 'block';
+  state.multiHistory = [{role:'user', content:'请根据以下信息进行塔罗牌解读：\n'+ctx}];
+  callAI(sys, state.multiHistory).then(function(result) {
+    state.multiHistory.push({role:'assistant', content:result});
+    state.multiReadingText = result;
+    document.getElementById('multiReadingText').textContent = result;
+    document.getElementById('multiReadingText').classList.remove('streaming');
+    document.getElementById('multiSpinner').style.display = 'none';
+    document.getElementById('multiReadBtn').disabled = false;
+    document.getElementById('multiSaveBtnWrap').style.display = 'block';
+  }).catch(function(e) {
+    document.getElementById('multiReadingText').textContent = '解读失败：' + e.message;
+    document.getElementById('multiReadingText').classList.remove('streaming');
+    document.getElementById('multiSpinner').style.display = 'none';
+    document.getElementById('multiReadBtn').disabled = false;
+  });
+}
+
+// ── MODE SWITCH ──────────────────────────────────────────────
+function switchMode(mode) {
+  state.mode = mode;
+  document.getElementById('singleMode').style.display = mode==='single' ? 'block' : 'none';
+  document.getElementById('multiMode').style.display = mode==='multi' ? 'block' : 'none';
+  document.getElementById('tabSingle').classList.toggle('active', mode==='single');
+  document.getElementById('tabMulti').classList.toggle('active', mode==='multi');
+}
+
+// ── CHAT ─────────────────────────────────────────────────────
+function chatKeydown(e, mode) { if (e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendChat(mode);} }
+function sendChat(mode) {
+  var inputEl = document.getElementById(mode+'ChatInput');
+  var messagesEl = document.getElementById(mode+'Messages');
+  var msg = inputEl.value.trim();
+  if (!msg) return;
+  inputEl.value = '';
+  var userBubble = document.createElement('div'); userBubble.className='chat-bubble user'; userBubble.textContent=msg;
+  messagesEl.appendChild(userBubble); messagesEl.scrollTop=messagesEl.scrollHeight;
+  state[mode+'History'].push({role:'user', content:msg});
+  var aiBubble = document.createElement('div'); aiBubble.className='chat-bubble ai'; aiBubble.textContent='思考中...';
+  messagesEl.appendChild(aiBubble); messagesEl.scrollTop=messagesEl.scrollHeight;
+  var sys = '你是一位资深的塔罗牌占卜师，正在与提问者进行解读后的追问对话。根据之前的解读内容回答追问，语言温和有洞察力，用中文回答。';
+  callAI(sys, state[mode+'History']).then(function(result) {
+    state[mode+'History'].push({role:'assistant', content:result});
+    aiBubble.textContent = result;
+    state[mode+'ChatLog'].push({q:msg, a:result});
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }).catch(function(e) { aiBubble.textContent='抱歉，回复失败：'+e.message; messagesEl.scrollTop=messagesEl.scrollHeight; });
+}
+
+// ── HISTORY ──────────────────────────────────────────────────
+function getHistory() { try{return JSON.parse(localStorage.getItem('tarot_history')||'[]');}catch(e){return[];} }
+function saveHistory(arr) { localStorage.setItem('tarot_history', JSON.stringify(arr)); }
+function saveCurrentReading(mode) {
+  var text = state[mode+'ReadingText'];
+  if (!text) { alert('请先进行解读'); return; }
+  var cards = mode==='single' ? state.drawnSingle : state.drawnMulti;
+  var question = document.getElementById(mode+'Question').value.trim();
+  var now = new Date(); var days=['日','一','二','三','四','五','六'];
+  var sLabels=['','今日运势','本月运势','个人状态/状况','具体事情发展阶段','任何事起因','本周运势'];
+  var mLabels={1:'时间流',2:'身心灵',3:'发展·阻碍·建议',4:'发展·想法·建议',5:'核心·发展·建议',6:'工作·稳定·改变',7:'是与否牌阵'};
+  var record = {
+    id: Date.now(),
+    mode: mode==='single'?'单张牌阵':'万用牌阵',
+    spreadName: mode==='single' ? sLabels[singleType] : mLabels[multiType],
+    question: question||'（无特定问题）',
+    time: now.getFullYear()+'年'+(now.getMonth()+1)+'月'+now.getDate()+'日 '+String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0'),
+    weekday: '星期'+days[now.getDay()],
+    location: state.location.city, weather: state.weather,
+    cards: cards.map(function(c){return {name:c.name,reversed:c.reversed};}),
+    reading: text,
+    chatLog: state[mode+'ChatLog'].slice()
+  };
+  var history = getHistory(); history.unshift(record);
+  if (history.length > 100) history.splice(100);
+  saveHistory(history);
+  var btn = document.getElementById(mode+'SaveBtn');
+  btn.textContent='✅ 已保存'; btn.classList.add('saved');
+  setTimeout(function(){ btn.textContent='🔖 保存此次占卜记录'; btn.classList.remove('saved'); }, 2500);
+}
+function showHistory() {
+  document.getElementById('mainContent').style.display='none';
+  document.getElementById('historyPage').style.display='block';
+  renderHistoryList();
+}
+function hideHistory() {
+  document.getElementById('historyPage').style.display='none';
+  document.getElementById('mainContent').style.display='block';
+}
+function renderHistoryList() {
+  var list = document.getElementById('historyList');
+  var history = getHistory();
+  if (!history.length) {
+    list.innerHTML='<div class="history-empty">📭 暂无历史记录<br><span style="font-size:13px">完成解读后点击"保存此次占卜记录"即可保存</span></div>';
+    return;
+  }
+  list.innerHTML='';
+  history.forEach(function(rec) {
+    var item = document.createElement('div'); item.className='history-item';
+    var chips = rec.cards.map(function(c){return '<span class="history-card-chip">'+(c.reversed?'↓':'')+c.name+'</span>';}).join('');
+    item.innerHTML='<div class="history-item-header"><div class="history-item-title">'+rec.mode+' · '+rec.spreadName+'</div>'
+      +'<div style="display:flex;gap:6px;align-items:center"><div class="history-item-date">'+rec.time+'</div>'
+      +'<button class="history-delete-btn" data-id="'+rec.id+'">删除</button></div></div>'
+      +'<div style="font-size:12px;color:var(--text-light);margin-bottom:5px">📍 '+rec.location+' &nbsp;🌤 '+rec.weather+' &nbsp;'+rec.weekday+'</div>'
+      +'<div style="font-size:12.5px;color:var(--text-light);margin-bottom:6px">❓ '+rec.question+'</div>'
+      +'<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:7px">'+chips+'</div>'
+      +'<div class="history-item-preview">'+rec.reading+'</div>';
+    item.querySelector('.history-delete-btn').addEventListener('click', function(e) {
+      e.stopPropagation();
+      if (confirm('确认删除这条记录？')) {
+        saveHistory(getHistory().filter(function(r){return r.id!==rec.id;}));
+        renderHistoryList();
+      }
+    });
+    item.addEventListener('click', function(e) {
+      if (!e.target.classList.contains('history-delete-btn')) openDetail(rec);
+    });
+    list.appendChild(item);
+  });
+}
+function clearAllHistory() {
+  if (confirm('确认清空所有历史记录？此操作不可撤销。')) {
+    localStorage.removeItem('tarot_history'); renderHistoryList();
+  }
+}
+function openDetail(rec) {
+  document.getElementById('detailTitle').textContent = rec.mode+' · '+rec.spreadName;
+  var cards = rec.cards.map(function(c){return '<div class="detail-card-item">'+(c.reversed?'↓逆位':'正位')+'·'+c.name+'</div>';}).join('');
+  var chatHtml = '';
+  if (rec.chatLog && rec.chatLog.length) {
+    chatHtml = '<div class="modal-section"><h4 style="font-size:13px;margin-bottom:8px">💬 追问对话</h4>'
+      + rec.chatLog.map(function(l){return '<div class="detail-chat-item"><div class="detail-chat-q">问：'+l.q+'</div><div class="detail-chat-a">'+l.a+'</div></div>';}).join('')
+      + '</div>';
+  }
+  document.getElementById('detailContent').innerHTML =
+    '<div style="font-size:12px;color:var(--text-light);margin-bottom:10px">🕐 '+rec.time+' '+rec.weekday+' &nbsp; 📍 '+rec.location+' &nbsp; 🌤 '+rec.weather+'</div>'
+    +'<div style="font-size:13px;margin-bottom:10px">❓ 问题：'+rec.question+'</div>'
+    +'<div style="font-size:12px;color:var(--text-light);margin-bottom:5px">抽到的牌：</div>'
+    +'<div class="detail-cards-row">'+cards+'</div>'
+    +'<div style="font-size:12px;color:var(--text-light);margin:10px 0 4px">解读内容：</div>'
+    +'<div class="detail-reading">'+rec.reading+'</div>'
+    + chatHtml;
+  document.getElementById('detailModal').classList.add('open');
+}
+function closeDetail() { document.getElementById('detailModal').classList.remove('open'); }
+
+// ── 访问密钥配置 ──────────────────────────────────────────────
+var PAGE_ACCESS_KEY = '030213';
+
+// ── 内置 Worker 配置 ──────────────────────────────────────────
+var BUILTIN_WORKER_URL = 'https://lucky-poetry-af98.2654608344qq.workers.dev';
+var BUILTIN_ACCESS_SECRET = '030213';
+
+// 访问门控逻辑
+function checkAccess() {
+  var input = document.getElementById('gateInput').value;
+  if (input === PAGE_ACCESS_KEY) {
+    sessionStorage.setItem('tarot_access', '1');
+    var gate = document.getElementById('accessGate');
+    gate.style.transition = 'opacity .5s';
+    gate.style.opacity = '0';
+    setTimeout(function(){ gate.style.display = 'none'; }, 500);
+  } else {
+    var errEl = document.getElementById('gateError');
+    errEl.textContent = '密钥错误，请重试';
+    errEl.classList.remove('shake');
+    void errEl.offsetWidth;
+    errEl.classList.add('shake');
+    document.getElementById('gateInput').value = '';
+  }
+}
+function toggleGateEye() {
+  var inp = document.getElementById('gateInput');
+  var eye = document.getElementById('gateEye');
+  if (inp.type === 'password') { inp.type = 'text'; eye.textContent = '🙈'; }
+  else { inp.type = 'password'; eye.textContent = '👁'; }
+}
+// 若本次会话已验证则直接跳过
+if (sessionStorage.getItem('tarot_access') === '1') {
+  document.getElementById('accessGate').style.display = 'none';
+}
+
+function callAI(systemPrompt, messages) {
+  // 优先使用内置 Worker（无需用户配置）
+  if (BUILTIN_WORKER_URL) {
+    return callBuiltinWorker(systemPrompt, messages);
+  }
+  // 否则使用用户自己配置的接口
+  if (cfg.provider === 'anthropic') {
+    if (!cfg.anthropicKey) { openSettings(); return Promise.reject(new Error('请先在设置中填写 Anthropic API Key')); }
+    return callAnthropic(systemPrompt, messages);
+  } else {
+    if (!cfg.openrouterKey) { openSettings(); return Promise.reject(new Error('请先在设置中填写 OpenRouter API Key')); }
+    return callOpenRouter(systemPrompt, messages);
+  }
+}
+
+function callBuiltinWorker(systemPrompt, messages) {
+  var headers = { 'Content-Type': 'application/json' };
+  if (BUILTIN_ACCESS_SECRET) headers['X-Access-Secret'] = BUILTIN_ACCESS_SECRET;
+  return fetch(BUILTIN_WORKER_URL, {
+    method: 'POST',
+    headers: headers,
+    body: JSON.stringify({
+      max_tokens: 1500,
+      messages: [{role:'system', content:systemPrompt}].concat(messages)
+    })
+  }).then(function(r) {
+    if (!r.ok) {
+      return r.json().catch(function(){return {};}).then(function(err) {
+        if (r.status === 401) throw new Error('访问密钥错误，请检查网页配置');
+        throw new Error(err.error&&err.error.message ? err.error.message : '服务请求失败: '+r.status);
+      });
+    }
+    return r.json();
+  }).then(function(data) {
+    if (data.error) throw new Error(data.error.message||'请求失败');
+    return data.choices&&data.choices[0]&&data.choices[0].message&&data.choices[0].message.content || '';
+  });
+}
+
+function callAnthropic(systemPrompt, messages) {
+  var url = cfg.anthropicProxy ? cfg.anthropicProxy+'/v1/messages' : 'https://api.anthropic.com/v1/messages';
+  var headers = {'Content-Type':'application/json','x-api-key':cfg.anthropicKey,'anthropic-version':'2023-06-01'};
+  if (!cfg.anthropicProxy) headers['anthropic-dangerous-direct-browser-access'] = 'true';
+  return fetch(url, {
+    method:'POST', headers:headers,
+    body:JSON.stringify({model:cfg.anthropicModel||'claude-opus-4-5',max_tokens:1500,system:systemPrompt,messages:messages})
+  }).then(function(r) {
+    if (!r.ok) {
+      return r.json().catch(function(){return {};}).then(function(err) {
+        if (r.status===401){openSettings();throw new Error('API Key 无效，请重新设置');}
+        if (r.status===403){throw new Error('访问被拒绝（地区限制），请在设置中配置代理地址');}
+        throw new Error(err.error&&err.error.message ? err.error.message : '请求失败: '+r.status);
+      });
+    }
+    return r.json();
+  }).then(function(data) {
+    if (data.error) throw new Error(data.error.message);
+    return data.content.map(function(b){return b.text||'';}).join('');
+  });
+}
+function callOpenRouter(systemPrompt, messages) {
+  var url = cfg.openrouterProxy || 'https://openrouter.ai/api/v1/chat/completions';
+  return fetch(url, {
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':'Bearer '+cfg.openrouterKey,'HTTP-Referer':'https://tarot-app.local','X-Title':'Tarot App'},
+    body:JSON.stringify({model:cfg.openrouterModel||'anthropic/claude-sonnet-4-5',max_tokens:1500,messages:[{role:'system',content:systemPrompt}].concat(messages)})
+  }).then(function(r) {
+    if (!r.ok) {
+      return r.json().catch(function(){return {};}).then(function(err) {
+        if (r.status===401){openSettings();throw new Error('OpenRouter API Key 无效，请重新设置');}
+        var msg = err.error&&err.error.message ? err.error.message : '请求失败: '+r.status;
+        if (msg.indexOf('banned')>=0||msg.indexOf('forbidden')>=0||r.status===403)
+          throw new Error('该模型在你的地区受限，请配置代理地址，或换用 deepseek/deepseek-chat 等模型');
+        throw new Error(msg);
+      });
+    }
+    return r.json();
+  }).then(function(data) {
+    if (data.error) throw new Error(data.error.message||'OpenRouter 请求失败');
+    return data.choices&&data.choices[0]&&data.choices[0].message&&data.choices[0].message.content || '';
+  });
+}
+</script>
+</body>
+</html>
