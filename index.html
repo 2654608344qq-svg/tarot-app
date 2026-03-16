@@ -122,6 +122,11 @@ body{font-family:'Noto Serif SC',serif;background:var(--bg);min-height:100vh;col
 .save-reading-btn{display:flex;align-items:center;gap:6px;background:rgba(201,168,76,.15);border:1.5px solid rgba(201,168,76,.4);border-radius:20px;padding:7px 16px;font-size:13px;color:var(--gold-dark);cursor:pointer;font-family:'Noto Serif SC',serif;transition:all .2s;margin:8px auto 0;width:fit-content}
 .save-reading-btn:hover{background:rgba(201,168,76,.25)}
 .save-reading-btn.saved{background:rgba(180,230,180,.3);border-color:rgba(100,180,100,.4);color:#2a7a2a}
+ 
+/* MODEL CARDS */
+.model-card{background:#f8f8f8;border:2px solid #e0e0e0;border-radius:14px;padding:12px 14px;cursor:pointer;transition:all .2s}
+.model-card:hover{border-color:var(--gold);background:#fffbf0}
+.model-card.selected{border-color:var(--gold);background:rgba(201,168,76,.08);box-shadow:0 0 0 3px rgba(201,168,76,.15)}
 .detail-cards-row{display:flex;gap:10px;flex-wrap:wrap;margin:8px 0}
 .detail-card-item{background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.3);border-radius:12px;padding:6px 12px;font-size:13px;color:var(--text)}
 .detail-reading{background:#fffef8;border:1px solid #e8d890;border-radius:12px;padding:14px;margin-top:8px;font-size:13.5px;line-height:1.8;color:var(--text);white-space:pre-wrap;max-height:280px;overflow-y:auto}
@@ -280,70 +285,51 @@ body{font-family:'Noto Serif SC',serif;background:var(--bg);min-height:100vh;col
  
 <!-- SETTINGS MODAL -->
 <div class="modal-bg" id="settingsModal">
-  <div class="modal" style="max-width:460px">
+  <div class="modal" style="max-width:380px">
     <h3>⚙️ 设置</h3>
+ 
     <div>
-      <h4 style="font-size:13.5px;color:var(--text);margin-bottom:8px">🤖 AI 接口选择</h4>
-      <label>接口类型</label>
-      <select id="apiProvider" onchange="onProviderChange()">
-        <option value="anthropic">Anthropic（Claude 官方）</option>
-        <option value="openrouter">OpenRouter（支持多种模型）</option>
-      </select>
-    </div>
+      <h4 style="font-size:13.5px;color:var(--text);margin-bottom:10px">🤖 AI 模型选择</h4>
+      <p style="font-size:12px;color:#aaa;margin-bottom:12px;line-height:1.6">系统已内置接口，无需填写任何 Key。<br>未选择城市时默认使用 DeepSeek（大陆可用）。</p>
  
-    <div id="anthropicSettings" class="modal-section">
-      <h4>Anthropic 设置</h4>
-      <p>前往 <a href="https://console.anthropic.com" target="_blank" style="color:var(--gold-dark)">console.anthropic.com</a> 获取 Key（以 sk-ant- 开头）</p>
-      <label>API Key</label>
-      <input type="password" id="anthropicKeyInput" placeholder="sk-ant-api03-..." autocomplete="off">
-      <label>模型</label>
-      <select id="anthropicModel">
-        <option value="claude-opus-4-5">claude-opus-4-5（最强）</option>
-        <option value="claude-sonnet-4-5">claude-sonnet-4-5（均衡）</option>
-        <option value="claude-haiku-4-5">claude-haiku-4-5（快速）</option>
-      </select>
-      <div class="proxy-box">
-        <div class="proxy-box-title">🌐 代理设置（解决地区限制）</div>
-        <p style="margin:0 0 8px">若直连受限，可填入 Cloudflare Worker 代理地址（留空则直连）</p>
-        <label>代理地址（可选）</label>
-        <input type="text" id="anthropicProxy" placeholder="https://your-worker.workers.dev">
-        <div class="tutorial-toggle" onclick="toggleTutorial('ant')">📖 查看代理搭建教程 ▼</div>
-        <div class="proxy-tutorial" id="antTutorial">
-          <b>1.</b> 注册 <a href="https://dash.cloudflare.com" target="_blank" style="color:var(--gold-dark)">Cloudflare</a> 免费账号<br>
-          <b>2.</b> Workers &amp; Pages → Create → Create Worker<br>
-          <b>3.</b> 删除默认代码，粘贴下方代码，点 Save and Deploy<br>
-          <b>4.</b> 复制 Worker URL 填入代理地址<br><br>
-          <button class="copy-btn" onclick="copyCode('ant')">📋 复制 Anthropic 代理代码</button>
+      <!-- 模型选择卡片 -->
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div id="modelCardDeepseek" class="model-card selected" onclick="selectModel('deepseek')">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="font-size:22px">🐋</div>
+            <div>
+              <div style="font-size:14px;font-weight:600;color:var(--text)">DeepSeek（推荐）</div>
+              <div style="font-size:11.5px;color:var(--text-light);margin-top:2px">中文优秀 · 大陆直连 · 速度快</div>
+            </div>
+            <div style="margin-left:auto;font-size:18px" id="checkDeepseek">✅</div>
+          </div>
+        </div>
+        <div id="modelCardGemini" class="model-card" onclick="selectModel('gemini')">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="font-size:22px">✨</div>
+            <div>
+              <div style="font-size:14px;font-weight:600;color:var(--text)">Gemini</div>
+              <div style="font-size:11.5px;color:var(--text-light);margin-top:2px">Google 模型 · 海外地区使用</div>
+            </div>
+            <div style="margin-left:auto;font-size:18px" id="checkGemini"></div>
+          </div>
+        </div>
+      </div>
+ 
+      <div style="margin-top:14px;padding:10px 12px;background:#f0f8f0;border-radius:10px;border:1px solid #c8e8c8">
+        <div style="font-size:12px;color:#4a7a4a;line-height:1.7">
+          🌍 <b>自动切换：</b>选择城市后系统会自动判断地区，大陆城市使用 DeepSeek，海外城市使用 Gemini。手动选择后将覆盖自动判断。
         </div>
       </div>
     </div>
  
-    <div id="openrouterSettings" class="modal-section" style="display:none">
-      <h4>OpenRouter 设置</h4>
-      <p>前往 <a href="https://openrouter.ai/keys" target="_blank" style="color:var(--gold-dark)">openrouter.ai/keys</a> 获取 Key（以 sk-or- 开头）</p>
-      <label>API Key</label>
-      <input type="password" id="openrouterKeyInput" placeholder="sk-or-v1-..." autocomplete="off">
-      <label>模型 ID（可自由填写）</label>
-      <input type="text" id="openrouterModel" placeholder="anthropic/claude-sonnet-4-5 或 deepseek/deepseek-chat">
-      <p style="margin-top:4px;font-size:11px">全部模型：<a href="https://openrouter.ai/models" target="_blank" style="color:var(--gold-dark)">openrouter.ai/models</a></p>
-      <div class="proxy-box">
-        <div class="proxy-box-title">🌐 代理设置（解决 Anthropic 模型地区限制）</div>
-        <p style="margin:0 0 8px">若使用 anthropic/claude-* 模型被封锁，可填入代理地址（留空则直连）</p>
-        <label>代理地址（可选）</label>
-        <input type="text" id="openrouterProxy" placeholder="https://your-worker.workers.dev">
-        <div class="tutorial-toggle" onclick="toggleTutorial('or')">📖 查看代理搭建教程 ▼</div>
-        <div class="proxy-tutorial" id="orTutorial">
-          <b>1.</b> 注册 <a href="https://dash.cloudflare.com" target="_blank" style="color:var(--gold-dark)">Cloudflare</a> 免费账号<br>
-          <b>2.</b> Workers &amp; Pages → Create → Create Worker<br>
-          <b>3.</b> 删除默认代码，粘贴下方代码，点 Save and Deploy<br>
-          <b>4.</b> 复制 Worker URL 填入代理地址<br><br>
-          <button class="copy-btn" onclick="copyCode('or')">📋 复制 OpenRouter 代理代码</button>
-        </div>
-      </div>
+    <div class="modal-section">
+      <h4 style="font-size:13px;margin-bottom:8px">🌡 天气 & 定位</h4>
+      <p style="font-size:12px;color:#aaa;line-height:1.6">天气通过 open-meteo.com 免费获取。<br>点击顶部 📍 可手动设置城市或 GPS 定位。</p>
     </div>
  
     <div class="modal-btns">
-      <button class="btn-confirm" onclick="saveSettings()">保存设置</button>
+      <button class="btn-confirm" onclick="saveSettings()">保存</button>
       <button class="btn-cancel" onclick="closeSettings()">取消</button>
     </div>
   </div>
@@ -363,104 +349,49 @@ body{font-family:'Noto Serif SC',serif;background:var(--bg);min-height:100vh;col
  
 <script>
 // ── CONFIG ──────────────────────────────────────────────────
-var cfg = {
-  provider: localStorage.getItem('t_provider') || 'anthropic',
-  anthropicKey: localStorage.getItem('t_ant_key') || '',
-  anthropicModel: localStorage.getItem('t_ant_model') || 'claude-opus-4-5',
-  anthropicProxy: localStorage.getItem('t_ant_proxy') || '',
-  openrouterKey: localStorage.getItem('t_or_key') || '',
-  openrouterModel: localStorage.getItem('t_or_model') || 'anthropic/claude-sonnet-4-5',
-  openrouterProxy: localStorage.getItem('t_or_proxy') || ''
-};
- 
-// Worker code stored as plain arrays to avoid backtick conflicts
-var ANT_WORKER = [
-  'export default {',
-  '  async fetch(request) {',
-  '    if (request.method === "OPTIONS") {',
-  '      return new Response(null, { headers: {',
-  '        "Access-Control-Allow-Origin": "*",',
-  '        "Access-Control-Allow-Methods": "POST, OPTIONS",',
-  '        "Access-Control-Allow-Headers": "*" } });',
-  '    }',
-  '    var url = new URL(request.url);',
-  '    var target = "https://api.anthropic.com" + url.pathname + url.search;',
-  '    var resp = await fetch(new Request(target, {',
-  '      method: request.method,',
-  '      headers: request.headers,',
-  '      body: request.body',
-  '    }));',
-  '    var out = new Response(resp.body, resp);',
-  '    out.headers.set("Access-Control-Allow-Origin", "*");',
-  '    out.headers.set("Access-Control-Allow-Headers", "*");',
-  '    return out;',
-  '  }',
-  '};'
-].join('\n');
- 
-var OR_WORKER = [
-  'export default {',
-  '  async fetch(request) {',
-  '    if (request.method === "OPTIONS") {',
-  '      return new Response(null, { headers: {',
-  '        "Access-Control-Allow-Origin": "*",',
-  '        "Access-Control-Allow-Methods": "POST, OPTIONS",',
-  '        "Access-Control-Allow-Headers": "*" } });',
-  '    }',
-  '    var resp = await fetch("https://openrouter.ai/api/v1/chat/completions", {',
-  '      method: "POST",',
-  '      headers: request.headers,',
-  '      body: request.body',
-  '    });',
-  '    var out = new Response(resp.body, resp);',
-  '    out.headers.set("Access-Control-Allow-Origin", "*");',
-  '    out.headers.set("Access-Control-Allow-Headers", "*");',
-  '    return out;',
-  '  }',
-  '};'
-].join('\n');
+// 手动选择的模型偏好：'auto'=自动判断地区, 'deepseek'=强制DeepSeek, 'gemini'=强制Gemini
+var manualModel = localStorage.getItem('t_manual_model') || 'auto';
  
 function openSettings() {
-  document.getElementById('apiProvider').value = cfg.provider;
-  document.getElementById('anthropicKeyInput').value = cfg.anthropicKey;
-  document.getElementById('anthropicModel').value = cfg.anthropicModel;
-  document.getElementById('anthropicProxy').value = cfg.anthropicProxy;
-  document.getElementById('openrouterKeyInput').value = cfg.openrouterKey;
-  document.getElementById('openrouterModel').value = cfg.openrouterModel;
-  document.getElementById('openrouterProxy').value = cfg.openrouterProxy;
-  onProviderChange();
+  // 初始化模型卡片状态
+  var current = manualModel === 'gemini' ? 'gemini' : 'deepseek';
+  updateModelCards(current);
   document.getElementById('settingsModal').classList.add('open');
 }
 function closeSettings() { document.getElementById('settingsModal').classList.remove('open'); }
-function onProviderChange() {
-  var p = document.getElementById('apiProvider').value;
-  document.getElementById('anthropicSettings').style.display = p === 'anthropic' ? 'block' : 'none';
-  document.getElementById('openrouterSettings').style.display = p === 'openrouter' ? 'block' : 'none';
+ 
+function selectModel(model) {
+  updateModelCards(model);
+}
+function updateModelCards(model) {
+  var isDeepseek = model !== 'gemini';
+  document.getElementById('modelCardDeepseek').classList.toggle('selected', isDeepseek);
+  document.getElementById('modelCardGemini').classList.toggle('selected', !isDeepseek);
+  document.getElementById('checkDeepseek').textContent = isDeepseek ? '✅' : '';
+  document.getElementById('checkGemini').textContent = !isDeepseek ? '✅' : '';
 }
 function saveSettings() {
-  cfg.provider = document.getElementById('apiProvider').value;
-  cfg.anthropicKey = document.getElementById('anthropicKeyInput').value.trim();
-  cfg.anthropicModel = document.getElementById('anthropicModel').value;
-  cfg.anthropicProxy = document.getElementById('anthropicProxy').value.trim().replace(/\/+$/, '');
-  cfg.openrouterKey = document.getElementById('openrouterKeyInput').value.trim();
-  cfg.openrouterModel = document.getElementById('openrouterModel').value.trim();
-  cfg.openrouterProxy = document.getElementById('openrouterProxy').value.trim().replace(/\/+$/, '');
-  localStorage.setItem('t_provider', cfg.provider);
-  localStorage.setItem('t_ant_key', cfg.anthropicKey);
-  localStorage.setItem('t_ant_model', cfg.anthropicModel);
-  localStorage.setItem('t_ant_proxy', cfg.anthropicProxy);
-  localStorage.setItem('t_or_key', cfg.openrouterKey);
-  localStorage.setItem('t_or_model', cfg.openrouterModel);
-  localStorage.setItem('t_or_proxy', cfg.openrouterProxy);
-  updateSettingsBtn();
+  var isGeminiSelected = document.getElementById('modelCardGemini').classList.contains('selected');
+  manualModel = isGeminiSelected ? 'gemini' : 'deepseek';
+  localStorage.setItem('t_manual_model', manualModel);
   closeSettings();
   alert('✅ 设置已保存！');
 }
 function updateSettingsBtn() {
-  var hasKey = cfg.provider === 'anthropic' ? !!cfg.anthropicKey : !!cfg.openrouterKey;
   var btn = document.getElementById('settingsBtn');
-  btn.textContent = hasKey ? '⚙️ 已配置' : '⚙️ 设置';
-  btn.style.background = hasKey ? 'rgba(180,230,180,.7)' : 'rgba(255,200,180,.7)';
+  btn.textContent = '⚙️ 设置';
+  btn.style.background = 'rgba(200,210,240,.6)';
+}
+updateSettingsBtn();
+ 
+ 
+  closeSettings();
+  alert('✅ 设置已保存！');
+}
+function updateSettingsBtn() {
+  var btn = document.getElementById('settingsBtn');
+  btn.textContent = '⚙️ 设置';
+  btn.style.background = 'rgba(200,210,240,.6)';
 }
 updateSettingsBtn();
  
@@ -934,18 +865,10 @@ if (sessionStorage.getItem('tarot_access') === '1') {
 }
  
 function callAI(systemPrompt, messages, onChunk) {
-  // 优先使用内置 Worker（无需用户配置）
-  if (BUILTIN_WORKER_URL) {
-    return callBuiltinWorker(systemPrompt, messages, onChunk);
+  if (!BUILTIN_WORKER_URL) {
+    return Promise.reject(new Error('服务未配置，请联系管理员'));
   }
-  // 否则使用用户自己配置的接口
-  if (cfg.provider === 'anthropic') {
-    if (!cfg.anthropicKey) { openSettings(); return Promise.reject(new Error('请先在设置中填写 Anthropic API Key')); }
-    return callAnthropic(systemPrompt, messages);
-  } else {
-    if (!cfg.openrouterKey) { openSettings(); return Promise.reject(new Error('请先在设置中填写 OpenRouter API Key')); }
-    return callOpenRouter(systemPrompt, messages);
-  }
+  return callBuiltinWorker(systemPrompt, messages, onChunk);
 }
  
 // ── 大陆城市/省份关键词列表 ──────────────────────────────────
@@ -990,17 +913,17 @@ function isChinaMainland(city) {
   return false;
 }
  
-// 根据地区获取推荐模型
+// 根据地区获取推荐模型（手动选择优先）
 function getModelByLocation() {
+  // 如果手动选择了 Gemini，直接用 Gemini
+  if (manualModel === 'gemini') return 'google/gemini-2.0-flash-001';
+  // 如果手动选择了 DeepSeek，直接用 DeepSeek
+  if (manualModel === 'deepseek') return 'deepseek/deepseek-chat';
+  // auto 模式：根据城市自动判断
   var city = state.location.city;
-  // 未识别到城市时默认使用大陆模型
-  if (!city || city === '未知') {
-    return 'deepseek/deepseek-chat';
-  }
-  if (isChinaMainland(city)) {
-    return 'deepseek/deepseek-chat';  // 大陆地区用 DeepSeek
-  }
-  return 'google/gemini-2.0-flash-001';  // 其他地区用 Gemini
+  if (!city || city === '未知') return 'deepseek/deepseek-chat';
+  if (isChinaMainland(city)) return 'deepseek/deepseek-chat';
+  return 'google/gemini-2.0-flash-001';
 }
  
 function callBuiltinWorker(systemPrompt, messages, onChunk) {
@@ -1041,49 +964,6 @@ function callBuiltinWorker(systemPrompt, messages, onChunk) {
   });
 }
  
-function callAnthropic(systemPrompt, messages) {
-  var url = cfg.anthropicProxy ? cfg.anthropicProxy+'/v1/messages' : 'https://api.anthropic.com/v1/messages';
-  var headers = {'Content-Type':'application/json','x-api-key':cfg.anthropicKey,'anthropic-version':'2023-06-01'};
-  if (!cfg.anthropicProxy) headers['anthropic-dangerous-direct-browser-access'] = 'true';
-  return fetch(url, {
-    method:'POST', headers:headers,
-    body:JSON.stringify({model:cfg.anthropicModel||'claude-opus-4-5',max_tokens:1500,system:systemPrompt,messages:messages})
-  }).then(function(r) {
-    if (!r.ok) {
-      return r.json().catch(function(){return {};}).then(function(err) {
-        if (r.status===401){openSettings();throw new Error('API Key 无效，请重新设置');}
-        if (r.status===403){throw new Error('访问被拒绝（地区限制），请在设置中配置代理地址');}
-        throw new Error(err.error&&err.error.message ? err.error.message : '请求失败: '+r.status);
-      });
-    }
-    return r.json();
-  }).then(function(data) {
-    if (data.error) throw new Error(data.error.message);
-    return data.content.map(function(b){return b.text||'';}).join('');
-  });
-}
-function callOpenRouter(systemPrompt, messages) {
-  var url = cfg.openrouterProxy || 'https://openrouter.ai/api/v1/chat/completions';
-  return fetch(url, {
-    method:'POST',
-    headers:{'Content-Type':'application/json','Authorization':'Bearer '+cfg.openrouterKey,'HTTP-Referer':'https://tarot-app.local','X-Title':'Tarot App'},
-    body:JSON.stringify({model:cfg.openrouterModel||'anthropic/claude-sonnet-4-5',max_tokens:1500,messages:[{role:'system',content:systemPrompt}].concat(messages)})
-  }).then(function(r) {
-    if (!r.ok) {
-      return r.json().catch(function(){return {};}).then(function(err) {
-        if (r.status===401){openSettings();throw new Error('OpenRouter API Key 无效，请重新设置');}
-        var msg = err.error&&err.error.message ? err.error.message : '请求失败: '+r.status;
-        if (msg.indexOf('banned')>=0||msg.indexOf('forbidden')>=0||r.status===403)
-          throw new Error('该模型在你的地区受限，请配置代理地址，或换用 deepseek/deepseek-chat 等模型');
-        throw new Error(msg);
-      });
-    }
-    return r.json();
-  }).then(function(data) {
-    if (data.error) throw new Error(data.error.message||'OpenRouter 请求失败');
-    return data.choices&&data.choices[0]&&data.choices[0].message&&data.choices[0].message.content || '';
-  });
-}
 </script>
 </body>
 </html>
