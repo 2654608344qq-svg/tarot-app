@@ -59,8 +59,15 @@ body{font-family:'Noto Serif SC',serif;background:var(--bg);min-height:100vh;col
 .tarot-card{width:130px;border-radius:13px;overflow:hidden;box-shadow:0 8px 30px rgba(0,0,0,.2);transition:all .3s;cursor:pointer;background:#2a1a4e;animation:cardReveal .5s ease backwards;position:relative}
 .tarot-card:hover{transform:translateY(-6px) scale(1.03)}
 @keyframes cardReveal{from{opacity:0;transform:translateY(20px) rotate(-3deg)}to{opacity:1;transform:none}}
-.card-back{width:100%;aspect-ratio:3/5;background:linear-gradient(135deg,#1a0a3e,#3d1a70,#0a1a4e);display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden}
-.card-back::after{content:'';position:absolute;inset:5px;border:1px solid rgba(201,168,76,.25);border-radius:7px}
+.card-back{width:100%;aspect-ratio:3/5;background:linear-gradient(160deg,#1c0f2e 0%,#2d1a4a 40%,#1a0f35 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.card-back::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 30%,rgba(201,168,76,.18) 0%,transparent 65%),radial-gradient(ellipse at 50% 90%,rgba(180,120,200,.12) 0%,transparent 50%)}
+.card-back::after{content:'';position:absolute;inset:6px;border:1px solid rgba(201,168,76,.4);border-radius:6px;box-shadow:inset 0 0 12px rgba(201,168,76,.08)}
+.card-mucha-deco{position:absolute;top:0;left:0;right:0;bottom:0;pointer-events:none}
+.card-mucha-top{position:absolute;top:8px;left:50%;transform:translateX(-50%);width:70%;height:18px;border-top:1.5px solid rgba(201,168,76,.5);border-left:1.5px solid rgba(201,168,76,.5);border-right:1.5px solid rgba(201,168,76,.5);border-radius:50% 50% 0 0 / 100% 100% 0 0}
+.card-mucha-bot{position:absolute;bottom:22px;left:50%;transform:translateX(-50%);width:70%;height:12px;border-bottom:1.5px solid rgba(201,168,76,.5);border-left:1.5px solid rgba(201,168,76,.5);border-right:1.5px solid rgba(201,168,76,.5);border-radius:0 0 50% 50% / 0 0 100% 100%}
+.card-mucha-circle{position:absolute;top:50%;left:50%;transform:translate(-50%,-60%);width:54px;height:54px;border-radius:50%;border:1px solid rgba(201,168,76,.35);box-shadow:0 0 0 4px rgba(201,168,76,.08),0 0 16px rgba(201,168,76,.12)}
+.card-mucha-dots{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);display:flex;gap:4px}
+.card-mucha-dot{width:3px;height:3px;border-radius:50%;background:rgba(201,168,76,.45)}
 .card-name-tag{position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.65);color:#f0d890;font-size:10px;text-align:center;padding:4px;font-family:'Noto Serif SC',serif}
 .card-reversed-tag{position:absolute;top:5px;right:5px;background:rgba(180,60,60,.85);color:#fff;font-size:9px;border-radius:5px;padding:2px 4px}
 .card-slot{display:flex;flex-direction:column;align-items:center}
@@ -179,7 +186,7 @@ body{font-family:'Noto Serif SC',serif;background:var(--bg);min-height:100vh;col
           <div class="spread-dot" onclick="selectSingle(5,this)">5</div>
           <div class="spread-dot" onclick="selectSingle(6,this)">6</div>
         </div>
-        <div class="spread-notes">备注：<br>1：今日运势 &nbsp; 2：本月运势 &nbsp; 3：个人状态/状况<br>4：具体事情发展阶段 &nbsp; 5：任何事都起因（原因）<br>6：本周运势（连续抽七张，按照周一到周日依次排开）</div>
+        <div class="spread-notes">备注：<br>1：今日运势 &nbsp; 2：本月运势 &nbsp; 3：个人状态/状况<br>4：具体事情发展阶段 &nbsp; 5：任何事的起因（原因）<br>6：本周运势（连续抽七张，按照周一到周日依次排开）</div>
       </div>
       <div class="panel">
         <div style="font-size:14px;color:var(--text-light);margin-bottom:7px;font-weight:600">请输入问题：</div>
@@ -533,15 +540,36 @@ function renderCard(card, delay) {
   div.style.animationDelay = (delay||0) + 's';
   if (card.reversed) div.style.transform = 'rotate(180deg)';
   var sym = getSymbol(card);
+  var muchaColor = getMuchaColor(card);
   div.innerHTML = '<div style="position:relative">'
-    + '<div class="card-back">'
-    + '<div style="font-size:30px;color:rgba(201,168,76,.9);text-shadow:0 0 15px rgba(201,168,76,.8)">'+sym+'</div>'
-    + '<div style="font-size:10px;color:rgba(201,168,76,.7);margin-top:5px;padding:0 6px;text-align:center">'+card.name+'</div>'
+    + '<div class="card-back" style="background:'+muchaColor.bg+'">'
+    + '<div class="card-mucha-deco">'
+    + '<div class="card-mucha-top"></div>'
+    + '<div class="card-mucha-bot"></div>'
+    + '<div class="card-mucha-circle"></div>'
+    + '<div class="card-mucha-dots"><div class="card-mucha-dot"></div><div class="card-mucha-dot"></div><div class="card-mucha-dot"></div><div class="card-mucha-dot"></div><div class="card-mucha-dot"></div></div>'
+    + '</div>'
+    + '<div style="position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding-top:10px">'
+    + '<div style="font-size:28px;filter:drop-shadow(0 0 8px '+muchaColor.glow+');margin-bottom:4px">'+sym+'</div>'
+    + '<div style="font-size:9.5px;color:rgba(201,168,76,.8);letter-spacing:1px;text-align:center;padding:0 8px;font-family:serif">'+card.name+'</div>'
+    + '</div>'
     + '</div>'
     + (card.reversed ? '<div class="card-reversed-tag">逆位</div>' : '')
     + '<div class="card-name-tag">'+(card.reversed?'逆位·':'正位·')+card.name+'</div>'
     + '</div>';
   return div;
+}
+function getMuchaColor(card) {
+  // 每套牌有独特的穆夏风格配色
+  var palettes = {
+    major: {bg:'linear-gradient(160deg,#1c0f2e 0%,#2d1a4a 40%,#1a0f35 100%)', glow:'rgba(201,168,76,.9)'},
+    权杖: {bg:'linear-gradient(160deg,#1f1208 0%,#3a1f08 40%,#2a1505 100%)', glow:'rgba(220,140,60,.9)'},
+    圣杯: {bg:'linear-gradient(160deg,#081828 0%,#0d2540 40%,#061525 100%)', glow:'rgba(80,160,220,.9)'},
+    宝剑: {bg:'linear-gradient(160deg,#0e0e1f 0%,#1a1a35 40%,#0a0a18 100%)', glow:'rgba(160,180,220,.9)'},
+    星币: {bg:'linear-gradient(160deg,#0e1808 0%,#1a2e08 40%,#0a1505 100%)', glow:'rgba(140,200,80,.9)'}
+  };
+  if (card.type === 'major') return palettes.major;
+  return palettes[card.suit] || palettes.major;
 }
  
 // ── SINGLE MODE ──────────────────────────────────────────────
@@ -592,11 +620,11 @@ function drawSingleCards() {
 function readSingle() {
   var question = document.getElementById('singleQuestion').value.trim();
   var cardNames = state.drawnSingle.map(function(c){return c.name+'（'+(c.reversed?'逆位':'正位')+'）';}).join('、');
-  var typeLabels = ['','今日运势','本月运势','个人状态/状况','具体事情发展阶段','任何事都起因（原因）','本周运势'];
+  var typeLabels = ['','今日运势','本月运势','个人状态/状况','具体事情发展阶段','任何事的起因（原因）','本周运势'];
   var now = new Date();
   var days = ['日','一','二','三','四','五','六'];
   var ctx = '时间：'+now.getFullYear()+'年'+(now.getMonth()+1)+'月'+now.getDate()+'日 星期'+days[now.getDay()]+'\n地点：'+state.location.city+'\n天气：'+state.weather+'\n牌阵：单张牌阵 - '+(typeLabels[singleType]||'')+'\n问题：'+(question||'（无特定问题）')+'\n抽到的牌：'+cardNames;
-  var sys = '你是一位资深的塔罗牌占卜师，精通韦特塔罗牌体系。结合时间、地点、天气、问题及牌义进行深度解读。解读时：1.介绍抽到的牌及含义（区分正逆位）2.结合环境个性化解读 3.如是周运势则逐日分析 4.语言温和有洞察力，用中文回答';
+  var sys = '你是一位博学深邃的塔罗牌占卜师，精通韦特塔罗体系，熟读《塔罗牌完全指南》（Seventy-Eight Degrees of Wisdom）、《塔罗牌的奥秘》、《新象征塔罗》等经典著作。请按以下三个部分进行解读，语气睿智、理性、有说服力，不使用任何星号(*)或markdown符号，直接以纯文字段落呈现：\n\n第一部分【牌面解读】：依据经典塔罗体系，严谨解析所抽牌的核心象征、数字或元素意义，以及正位/逆位的本质区别，引用塔罗学理作为依据。\n\n第二部分【结合环境个性化解读】：将牌义与当前时间、地点、天气及天文节气相结合，分析这些环境因素如何影响牌意的显现，给出有逻辑的推断。如是周运势则逐日分析七天。\n\n第三部分【综合解读与建议】：结合提问者的具体问题，综合牌面与环境，给出理性、有据可循的分析和切实可行的行动建议，帮助提问者获得清晰的方向。'
   document.getElementById('singleReadingText').textContent = '';
   document.getElementById('singleReadingText').classList.add('streaming');
   document.getElementById('singleReadBtn').disabled = true;
@@ -669,7 +697,7 @@ function readMulti() {
   }
   var now = new Date(); var days = ['日','一','二','三','四','五','六'];
   var ctx = '时间：'+now.getFullYear()+'年'+(now.getMonth()+1)+'月'+now.getDate()+'日 星期'+days[now.getDay()]+'\n地点：'+state.location.city+'\n天气：'+state.weather+'\n牌阵：万用牌阵 - '+(typeNames[multiType]||'')+'\n问题：'+(question||'（无特定问题）')+'\n抽到的牌：\n'+cardDesc+extra;
-  var sys = '你是一位资深的塔罗牌占卜师，精通韦特塔罗牌体系，擅长三张牌阵深度解读。逐张分析每张牌的位置含义（区分正逆位），综合三张牌整体解读，结合时间天气地点个性化分析，给出具体建议，用中文回答。';
+  var sys = '你是一位博学深邃的塔罗牌占卜师，精通韦特塔罗体系，尤其擅长多张牌阵的综合解读，熟读《塔罗牌完全指南》（Seventy-Eight Degrees of Wisdom）、《Picture Tarot》等经典著作。请按以下三个部分进行解读，语气睿智、理性、有说服力，不使用任何星号(*)或markdown符号，直接以纯文字段落呈现：\n\n第一部分【牌面解读】：逐张分析每张牌在其牌阵位置上的核心含义，区分正逆位的本质差异，引用塔罗学理作为解读依据，分析三张牌之间的相互关系与能量流动。\n\n第二部分【结合环境个性化解读】：将三张牌的组合能量与当前时间、地点、天气相结合，分析环境背景如何影响牌意的显现，给出有逻辑的情境推断。\n\n第三部分【综合解读与建议】：结合提问者的具体问题，综合三张牌的整体信息，给出理性、清晰、有据可循的分析，并提供切实可行的行动建议或注意事项。';
   document.getElementById('multiReadingText').textContent = '';
   document.getElementById('multiReadingText').classList.add('streaming');
   document.getElementById('multiReadBtn').disabled = true;
@@ -715,7 +743,7 @@ function sendChat(mode) {
   state[mode+'History'].push({role:'user', content:msg});
   var aiBubble = document.createElement('div'); aiBubble.className='chat-bubble ai'; aiBubble.textContent='思考中...';
   messagesEl.appendChild(aiBubble); messagesEl.scrollTop=messagesEl.scrollHeight;
-  var sys = '你是一位资深的塔罗牌占卜师，正在与提问者进行解读后的追问对话。根据之前的解读内容回答追问，语言温和有洞察力，用中文回答。';
+  var sys = '你是一位博学的塔罗牌占卜师，正在与提问者进行解读后的追问对话。根据之前的解读内容，以理性、睿智、有说服力的语气回答追问，不使用任何星号(*)或markdown符号，直接以纯文字呈现，用中文回答。';
   callAI(sys, state[mode+'History']).then(function(result) {
     state[mode+'History'].push({role:'assistant', content:result});
     aiBubble.textContent = result;
@@ -905,21 +933,28 @@ function isChinaMainland(city) {
   return false;
 }
  
-// 根据地区获取推荐模型（手动选择优先）
+// 根据地区获取推荐模型（手动选择优先），返回 {model, provider}
 function getModelByLocation() {
-  // 如果手动选择了 Gemini，直接用 Gemini
-  if (manualModel === 'gemini') return 'google/gemini-2.0-flash-001';
-  // 如果手动选择了 DeepSeek，直接用 DeepSeek
-  if (manualModel === 'deepseek') return 'deepseek/deepseek-chat';
-  // auto 模式：根据城市自动判断
-  var city = state.location.city;
-  if (!city || city === '未知') return 'deepseek/deepseek-chat';
-  if (isChinaMainland(city)) return 'deepseek/deepseek-chat';
-  return 'google/gemini-2.0-flash-001';
+  var useGemini = false;
+  if (manualModel === 'gemini') {
+    useGemini = true;
+  } else if (manualModel === 'deepseek') {
+    useGemini = false;
+  } else {
+    // auto 模式：根据城市自动判断
+    var city = state.location.city;
+    if (city && city !== '未知' && !isChinaMainland(city)) useGemini = true;
+  }
+  if (useGemini) {
+    return {model: 'google/gemini-2.0-flash-001', provider: 'gemini'};
+  }
+  return {model: 'deepseek/deepseek-chat', provider: 'deepseek'};
 }
  
 function callBuiltinWorker(systemPrompt, messages, onChunk) {
-  var model = getModelByLocation();
+  var modelInfo = getModelByLocation();
+  var model = modelInfo.model;
+  var provider = modelInfo.provider;
   var headers = { 'Content-Type': 'application/json' };
   if (BUILTIN_ACCESS_SECRET) headers['X-Access-Secret'] = BUILTIN_ACCESS_SECRET;
   return fetch(BUILTIN_WORKER_URL, {
@@ -927,6 +962,7 @@ function callBuiltinWorker(systemPrompt, messages, onChunk) {
     headers: headers,
     body: JSON.stringify({
       model: model,
+      provider: provider,
       max_tokens: 1500,
       stream: false,
       messages: [{role:'system', content:systemPrompt}].concat(messages)
@@ -959,3 +995,4 @@ function callBuiltinWorker(systemPrompt, messages, onChunk) {
 </script>
 </body>
 </html>
+ 
