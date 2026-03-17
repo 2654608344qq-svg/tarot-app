@@ -541,7 +541,7 @@ function readSingle() {
   var now = new Date();
   var days = ['日','一','二','三','四','五','六'];
   var ctx = '时间：'+now.getFullYear()+'年'+(now.getMonth()+1)+'月'+now.getDate()+'日 星期'+days[now.getDay()]+'\n地点：'+state.location.city+'\n天气：'+state.weather+'\n牌阵：单张牌阵 - '+(typeLabels[singleType]||'')+'\n问题：'+(question||'（无特定问题）')+'\n抽到的牌：'+cardNames;
-  var sys = '你是一位博学深邃的塔罗牌占卜师，精通韦特塔罗体系，熟读《塔罗牌完全指南》（Seventy-Eight Degrees of Wisdom）、《塔罗牌的奥秘》、《新象征塔罗》等经典著作。请按以下三个部分进行解读，语气睿智、理性、有说服力，不使用任何星号(*)或markdown符号，直接以纯文字段落呈现：\n\n第一部分【牌面解读】：依据经典塔罗体系，严谨解析所抽牌的核心象征、数字或元素意义，以及正位/逆位的本质区别，引用塔罗学理作为依据。\n\n第二部分【结合环境个性化解读】：将牌义与当前时间、地点、天气及天文节气相结合，分析这些环境因素如何影响牌意的显现，给出有逻辑的推断。如是周运势则逐日分析七天。\n\n第三部分【综合解读与建议】：结合提问者的具体问题，综合牌面与环境，给出理性、有据可循的分析和切实可行的行动建议，帮助提问者获得清晰的方向。'
+  var sys = '你是专业塔罗占卜师，精通韦特塔罗。禁用星号和markdown，纯文字输出。按三段回答：【牌面解读】解析牌义象征与正逆位含义；【环境解读】结合时间地点天气分析（周运势逐日）；【综合建议】针对问题给出理性分析和行动建议。'
   document.getElementById('singleReadingText').textContent = '';
   document.getElementById('singleReadingText').classList.add('streaming');
   document.getElementById('singleReadBtn').disabled = true;
@@ -614,7 +614,7 @@ function readMulti() {
   }
   var now = new Date(); var days = ['日','一','二','三','四','五','六'];
   var ctx = '时间：'+now.getFullYear()+'年'+(now.getMonth()+1)+'月'+now.getDate()+'日 星期'+days[now.getDay()]+'\n地点：'+state.location.city+'\n天气：'+state.weather+'\n牌阵：万用牌阵 - '+(typeNames[multiType]||'')+'\n问题：'+(question||'（无特定问题）')+'\n抽到的牌：\n'+cardDesc+extra;
-  var sys = '你是一位博学深邃的塔罗牌占卜师，精通韦特塔罗体系，尤其擅长多张牌阵的综合解读，熟读《塔罗牌完全指南》（Seventy-Eight Degrees of Wisdom）、《Picture Tarot》等经典著作。请按以下三个部分进行解读，语气睿智、理性、有说服力，不使用任何星号(*)或markdown符号，直接以纯文字段落呈现：\n\n第一部分【牌面解读】：逐张分析每张牌在其牌阵位置上的核心含义，区分正逆位的本质差异，引用塔罗学理作为解读依据，分析三张牌之间的相互关系与能量流动。\n\n第二部分【结合环境个性化解读】：将三张牌的组合能量与当前时间、地点、天气相结合，分析环境背景如何影响牌意的显现，给出有逻辑的情境推断。\n\n第三部分【综合解读与建议】：结合提问者的具体问题，综合三张牌的整体信息，给出理性、清晰、有据可循的分析，并提供切实可行的行动建议或注意事项。';
+  var sys = '你是专业塔罗占卜师，精通韦特塔罗多牌阵解读。禁用星号和markdown，纯文字输出。按三段回答：【牌面解读】逐张分析位置含义与正逆位差异及牌间关系；【环境解读】结合时间地点天气分析牌意显现；【综合建议】针对问题综合分析给出理性建议。';
   document.getElementById('multiReadingText').textContent = '';
   document.getElementById('multiReadingText').classList.add('streaming');
   document.getElementById('multiReadBtn').disabled = true;
@@ -660,8 +660,11 @@ function sendChat(mode) {
   state[mode+'History'].push({role:'user', content:msg});
   var aiBubble = document.createElement('div'); aiBubble.className='chat-bubble ai'; aiBubble.textContent='思考中...';
   messagesEl.appendChild(aiBubble); messagesEl.scrollTop=messagesEl.scrollHeight;
-  var sys = '你是一位博学的塔罗牌占卜师，正在与提问者进行解读后的追问对话。根据之前的解读内容，以理性、睿智、有说服力的语气回答追问，不使用任何星号(*)或markdown符号，直接以纯文字呈现，用中文回答。';
-  callAI(sys, state[mode+'History']).then(function(result) {
+  var sys = '你是塔罗占卜师，根据之前的解读回答追问。禁用星号和markdown，纯文字中文回答。';
+  // 只保留首条（解读上下文）+ 最近6条对话，节省token
+  var hist = state[mode+'History'];
+  var trimmed = hist.length > 7 ? [hist[0]].concat(hist.slice(-6)) : hist;
+  callAI(sys, trimmed, null, 600).then(function(result) {
     state[mode+'History'].push({role:'assistant', content:result});
     aiBubble.textContent = result;
     state[mode+'ChatLog'].push({q:msg, a:result});
@@ -771,7 +774,6 @@ var PAGE_ACCESS_KEY = '030213';
 // ── 内置 Worker 配置 ──────────────────────────────────────────
 var BUILTIN_WORKER_URL = 'https://lucky-poetry-af98.2654608344qq.workers.dev';
 var BUILTIN_ACCESS_SECRET = '030213';
-var DEEPSEEK_DIRECT_KEY = 'sk-59d9efd6ae814702a624ad30a9378f53';
  
 // 访问门控逻辑
 function checkAccess() {
@@ -803,16 +805,15 @@ if (sessionStorage.getItem('tarot_access') === '1') {
 }
  
 // 先尝试 Worker（Gemini），失败则直连 DeepSeek
-function callAI(systemPrompt, messages, onChunk) {
+function callAI(systemPrompt, messages, onChunk, maxTok) {
+  maxTok = maxTok || 1200;
   if (!BUILTIN_WORKER_URL) {
-    return callDeepSeekDirect(systemPrompt, messages, onChunk);
+    return callDeepSeekDirect(systemPrompt, messages, onChunk, maxTok);
   }
-  // 先 ping Worker，判断是否可达
-  return callBuiltinWorker(systemPrompt, messages, onChunk)
+  return callBuiltinWorker(systemPrompt, messages, onChunk, maxTok)
     .catch(function(e) {
-      // Worker 不可达（Failed to fetch / 网络问题），自动降级到 DeepSeek 直连
       if (e.message === 'Failed to fetch' || e.message.indexOf('fetch') >= 0 || e.message.indexOf('network') >= 0) {
-        return callDeepSeekDirect(systemPrompt, messages, onChunk);
+        return callDeepSeekDirect(systemPrompt, messages, onChunk, maxTok);
       }
       throw e;
     });
@@ -863,7 +864,8 @@ function isChinaMainland(city) {
  
  
 // Worker 通道：走 Gemini（需要外网）
-function callBuiltinWorker(systemPrompt, messages, onChunk) {
+function callBuiltinWorker(systemPrompt, messages, onChunk, maxTok) {
+  maxTok = maxTok || 1200;
   var headers = { 'Content-Type': 'application/json' };
   if (BUILTIN_ACCESS_SECRET) headers['X-Access-Secret'] = BUILTIN_ACCESS_SECRET;
   return fetch(BUILTIN_WORKER_URL, {
@@ -872,7 +874,7 @@ function callBuiltinWorker(systemPrompt, messages, onChunk) {
     body: JSON.stringify({
       model: 'google/gemini-2.0-flash-001',
       provider: 'gemini',
-      max_tokens: 1500,
+      max_tokens: maxTok,
       stream: false,
       messages: [{role:'system', content:systemPrompt}].concat(messages)
     })
@@ -891,7 +893,8 @@ function callBuiltinWorker(systemPrompt, messages, onChunk) {
 }
  
 // 直连通道：走 DeepSeek 官方 API（国内无需翻墙）
-function callDeepSeekDirect(systemPrompt, messages, onChunk) {
+function callDeepSeekDirect(systemPrompt, messages, onChunk, maxTok) {
+  maxTok = maxTok || 1200;
   return fetch('https://api.deepseek.com/v1/chat/completions', {
     method: 'POST',
     headers: {
@@ -900,7 +903,7 @@ function callDeepSeekDirect(systemPrompt, messages, onChunk) {
     },
     body: JSON.stringify({
       model: 'deepseek-chat',
-      max_tokens: 1500,
+      max_tokens: maxTok,
       stream: false,
       messages: [{role:'system', content:systemPrompt}].concat(messages)
     })
