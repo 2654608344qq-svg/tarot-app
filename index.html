@@ -130,10 +130,6 @@ body{font-family:'Noto Serif SC',serif;background:var(--bg);min-height:100vh;col
 .save-reading-btn:hover{background:rgba(201,168,76,.25)}
 .save-reading-btn.saved{background:rgba(180,230,180,.3);border-color:rgba(100,180,100,.4);color:#2a7a2a}
  
-/* MODEL CARDS */
-.model-card{background:#f8f8f8;border:2px solid #e0e0e0;border-radius:14px;padding:12px 14px;cursor:pointer;transition:all .2s}
-.model-card:hover{border-color:var(--gold);background:#fffbf0}
-.model-card.selected{border-color:var(--gold);background:rgba(201,168,76,.08);box-shadow:0 0 0 3px rgba(201,168,76,.15)}
 .detail-cards-row{display:flex;gap:10px;flex-wrap:wrap;margin:8px 0}
 .detail-card-item{background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.3);border-radius:12px;padding:6px 12px;font-size:13px;color:var(--text)}
 .detail-reading{background:#fffef8;border:1px solid #e8d890;border-radius:12px;padding:14px;margin-top:8px;font-size:13.5px;line-height:1.8;color:var(--text);white-space:pre-wrap;max-height:280px;overflow-y:auto}
@@ -166,7 +162,6 @@ body{font-family:'Noto Serif SC',serif;background:var(--bg);min-height:100vh;col
     <div class="topbar-item" id="locationBtn" onclick="openLocationModal()">📍 地区</div>
     <div class="topbar-item" id="weatherDisplay">🌤 天气</div>
     <div class="topbar-item" id="historyTopBtn" onclick="showHistory()" style="background:rgba(200,210,240,.6)">📜 历史</div>
-    <div class="topbar-item" id="settingsBtn" onclick="openSettings()">⚙️ 设置</div>
   </div>
  
   <div id="mainContent">
@@ -290,57 +285,6 @@ body{font-family:'Noto Serif SC',serif;background:var(--bg);min-height:100vh;col
   </div>
 </div>
  
-<!-- SETTINGS MODAL -->
-<div class="modal-bg" id="settingsModal">
-  <div class="modal" style="max-width:380px">
-    <h3>⚙️ 设置</h3>
- 
-    <div>
-      <h4 style="font-size:13.5px;color:var(--text);margin-bottom:10px">🤖 AI 模型选择</h4>
-      <p style="font-size:12px;color:#aaa;margin-bottom:12px;line-height:1.6">系统已内置接口，无需填写任何 Key。<br>未选择城市时默认使用 DeepSeek（大陆可用）。</p>
- 
-      <!-- 模型选择卡片 -->
-      <div style="display:flex;flex-direction:column;gap:10px">
-        <div id="modelCardDeepseek" class="model-card selected" onclick="selectModel('deepseek')">
-          <div style="display:flex;align-items:center;gap:10px">
-            <div style="font-size:22px">🐋</div>
-            <div>
-              <div style="font-size:14px;font-weight:600;color:var(--text)">DeepSeek（推荐）</div>
-              <div style="font-size:11.5px;color:var(--text-light);margin-top:2px">中文优秀 · 大陆直连 · 速度快</div>
-            </div>
-            <div style="margin-left:auto;font-size:18px" id="checkDeepseek">✅</div>
-          </div>
-        </div>
-        <div id="modelCardGemini" class="model-card" onclick="selectModel('gemini')">
-          <div style="display:flex;align-items:center;gap:10px">
-            <div style="font-size:22px">✨</div>
-            <div>
-              <div style="font-size:14px;font-weight:600;color:var(--text)">Gemini</div>
-              <div style="font-size:11.5px;color:var(--text-light);margin-top:2px">Google 模型 · 海外地区使用</div>
-            </div>
-            <div style="margin-left:auto;font-size:18px" id="checkGemini"></div>
-          </div>
-        </div>
-      </div>
- 
-      <div style="margin-top:14px;padding:10px 12px;background:#f0f8f0;border-radius:10px;border:1px solid #c8e8c8">
-        <div style="font-size:12px;color:#4a7a4a;line-height:1.7">
-          🌍 <b>自动切换：</b>选择城市后系统会自动判断地区，大陆城市使用 DeepSeek，海外城市使用 Gemini。手动选择后将覆盖自动判断。
-        </div>
-      </div>
-    </div>
- 
-    <div class="modal-section">
-      <h4 style="font-size:13px;margin-bottom:8px">🌡 天气 & 定位</h4>
-      <p style="font-size:12px;color:#aaa;line-height:1.6">天气通过 open-meteo.com 免费获取。<br>点击顶部 📍 可手动设置城市或 GPS 定位。</p>
-    </div>
- 
-    <div class="modal-btns">
-      <button class="btn-confirm" onclick="saveSettings()">保存</button>
-      <button class="btn-cancel" onclick="closeSettings()">取消</button>
-    </div>
-  </div>
-</div>
  
 <!-- DETAIL MODAL -->
 <div class="modal-bg" id="detailModal">
@@ -359,17 +303,6 @@ body{font-family:'Noto Serif SC',serif;background:var(--bg);min-height:100vh;col
 // 手动选择的模型偏好：'auto'=自动判断地区, 'deepseek'=强制DeepSeek, 'gemini'=强制Gemini
 var manualModel = localStorage.getItem('t_manual_model') || 'auto';
  
-function openSettings() {
-  // 初始化模型卡片状态
-  var current = manualModel === 'gemini' ? 'gemini' : 'deepseek';
-  updateModelCards(current);
-  document.getElementById('settingsModal').classList.add('open');
-}
-function closeSettings() { document.getElementById('settingsModal').classList.remove('open'); }
- 
-function selectModel(model) {
-  updateModelCards(model);
-}
 function updateModelCards(model) {
   var isDeepseek = model !== 'gemini';
   document.getElementById('modelCardDeepseek').classList.toggle('selected', isDeepseek);
@@ -377,22 +310,6 @@ function updateModelCards(model) {
   document.getElementById('checkDeepseek').textContent = isDeepseek ? '✅' : '';
   document.getElementById('checkGemini').textContent = !isDeepseek ? '✅' : '';
 }
-function saveSettings() {
-  var isGeminiSelected = document.getElementById('modelCardGemini').classList.contains('selected');
-  manualModel = isGeminiSelected ? 'gemini' : 'deepseek';
-  localStorage.setItem('t_manual_model', manualModel);
- 
- 
- 
-  closeSettings();
-  alert('✅ 设置已保存！');
-}
-function updateSettingsBtn() {
-  var btn = document.getElementById('settingsBtn');
-  btn.textContent = '⚙️ 设置';
-  btn.style.background = 'rgba(200,210,240,.6)';
-}
-updateSettingsBtn();
  
 function toggleTutorial(type) {
   var el = document.getElementById(type + 'Tutorial');
@@ -884,11 +801,20 @@ if (sessionStorage.getItem('tarot_access') === '1') {
   document.getElementById('accessGate').style.display = 'none';
 }
  
+// 先尝试 Worker（Gemini），失败则直连 DeepSeek
 function callAI(systemPrompt, messages, onChunk) {
   if (!BUILTIN_WORKER_URL) {
-    return Promise.reject(new Error('服务未配置，请联系管理员'));
+    return callDeepSeekDirect(systemPrompt, messages, onChunk);
   }
-  return callBuiltinWorker(systemPrompt, messages, onChunk);
+  // 先 ping Worker，判断是否可达
+  return callBuiltinWorker(systemPrompt, messages, onChunk)
+    .catch(function(e) {
+      // Worker 不可达（Failed to fetch / 网络问题），自动降级到 DeepSeek 直连
+      if (e.message === 'Failed to fetch' || e.message.indexOf('fetch') >= 0 || e.message.indexOf('network') >= 0) {
+        return callDeepSeekDirect(systemPrompt, messages, onChunk);
+      }
+      throw e;
+    });
 }
  
 // ── 大陆城市/省份关键词列表 ──────────────────────────────────
@@ -933,36 +859,18 @@ function isChinaMainland(city) {
   return false;
 }
  
-// 根据地区获取推荐模型（手动选择优先），返回 {model, provider}
-function getModelByLocation() {
-  var useGemini = false;
-  if (manualModel === 'gemini') {
-    useGemini = true;
-  } else if (manualModel === 'deepseek') {
-    useGemini = false;
-  } else {
-    // auto 模式：根据城市自动判断
-    var city = state.location.city;
-    if (city && city !== '未知' && !isChinaMainland(city)) useGemini = true;
-  }
-  if (useGemini) {
-    return {model: 'google/gemini-2.0-flash-001', provider: 'gemini'};
-  }
-  return {model: 'deepseek/deepseek-chat', provider: 'deepseek'};
-}
  
+ 
+// Worker 通道：走 Gemini（需要外网）
 function callBuiltinWorker(systemPrompt, messages, onChunk) {
-  var modelInfo = getModelByLocation();
-  var model = modelInfo.model;
-  var provider = modelInfo.provider;
   var headers = { 'Content-Type': 'application/json' };
   if (BUILTIN_ACCESS_SECRET) headers['X-Access-Secret'] = BUILTIN_ACCESS_SECRET;
   return fetch(BUILTIN_WORKER_URL, {
     method: 'POST',
     headers: headers,
     body: JSON.stringify({
-      model: model,
-      provider: provider,
+      model: 'google/gemini-2.0-flash-001',
+      provider: 'gemini',
       max_tokens: 1500,
       stream: false,
       messages: [{role:'system', content:systemPrompt}].concat(messages)
@@ -970,26 +878,56 @@ function callBuiltinWorker(systemPrompt, messages, onChunk) {
   }).then(function(r) {
     if (!r.ok) {
       return r.json().catch(function(){return {};}).then(function(err) {
-        if (r.status === 401) throw new Error('访问密钥错误，请检查网页配置');
+        if (r.status === 401) throw new Error('访问密钥错误');
         throw new Error(err.error&&err.error.message ? err.error.message : '服务请求失败: '+r.status);
       });
     }
     return r.json();
   }).then(function(data) {
     if (data.error) throw new Error(data.error.message||'请求失败');
-    var text = data.choices&&data.choices[0]&&data.choices[0].message&&data.choices[0].message.content || '';
-    // 模拟打字机效果逐字显示
-    if (onChunk && text) {
-      var i = 0;
-      var step = Math.max(1, Math.floor(text.length / 80));
-      var timer = setInterval(function() {
-        i += step;
-        if (i >= text.length) { i = text.length; clearInterval(timer); }
-        onChunk(text.slice(0, i));
-      }, 16);
-    }
-    return text;
+    return applyTypewriter(data.choices&&data.choices[0]&&data.choices[0].message&&data.choices[0].message.content||'', onChunk);
   });
+}
+ 
+// 直连通道：走 DeepSeek 官方 API（国内无需翻墙）
+function callDeepSeekDirect(systemPrompt, messages, onChunk) {
+  return fetch('https://api.deepseek.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + DEEPSEEK_DIRECT_KEY
+    },
+    body: JSON.stringify({
+      model: 'deepseek-chat',
+      max_tokens: 1500,
+      stream: false,
+      messages: [{role:'system', content:systemPrompt}].concat(messages)
+    })
+  }).then(function(r) {
+    if (!r.ok) {
+      return r.json().catch(function(){return {};}).then(function(err) {
+        throw new Error(err.error&&err.error.message ? err.error.message : 'DeepSeek请求失败: '+r.status);
+      });
+    }
+    return r.json();
+  }).then(function(data) {
+    if (data.error) throw new Error(data.error.message||'DeepSeek请求失败');
+    return applyTypewriter(data.choices&&data.choices[0]&&data.choices[0].message&&data.choices[0].message.content||'', onChunk);
+  });
+}
+ 
+// 打字机效果
+function applyTypewriter(text, onChunk) {
+  if (onChunk && text) {
+    var i = 0;
+    var step = Math.max(1, Math.floor(text.length / 80));
+    var timer = setInterval(function() {
+      i += step;
+      if (i >= text.length) { i = text.length; clearInterval(timer); }
+      onChunk(text.slice(0, i));
+    }, 16);
+  }
+  return text;
 }
  
 </script>
