@@ -43,14 +43,10 @@ body{font-family:'Noto Serif SC',serif;background:var(--bg);min-height:100vh;col
 .tarot-divider{display:flex;align-items:center;gap:10px;margin:10px 0;opacity:.6}
 .tarot-divider::before,.tarot-divider::after{content:'';flex:1;height:1px;background:linear-gradient(to right,transparent,var(--gold),transparent)}
 .tarot-divider-icon{font-size:14px;color:var(--gold);flex-shrink:0}
-.zodiac-strip{display:flex;justify-content:center;gap:14px;padding:6px 0;margin-bottom:12px;overflow:hidden}
-.zodiac-item{display:flex;flex-direction:column;align-items:center;gap:2px;opacity:.45;transition:opacity .2s;cursor:default}
-.zodiac-item:hover{opacity:.8}
-.zodiac-icon{font-size:18px}
-.zodiac-name{font-size:9px;color:var(--text-light);letter-spacing:.5px}
+.zodiac-strip{display:flex;justify-content:center;gap:8px;padding:4px 8px 8px;margin-bottom:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;flex-wrap:nowrap;scrollbar-width:none}.zodiac-strip::-webkit-scrollbar{display:none}.zodiac-item{display:flex;align-items:center;justify-content:center;opacity:.4;transition:opacity .2s;cursor:default;flex-shrink:0;width:26px;height:26px}.zodiac-item:hover{opacity:.75}.zodiac-icon{font-size:16px}
 .moon-phase{position:fixed;bottom:20px;right:20px;font-size:28px;opacity:.18;pointer-events:none;filter:drop-shadow(0 0 8px rgba(201,168,76,.4))}
 .reading-panel{position:relative}
-.reading-panel::before{content:'✦';position:absolute;top:-10px;left:50%;transform:translateX(-50%);font-size:16px;color:var(--gold);opacity:.6;background:var(--bg);padding:0 8px}
+.reading-panel::before{content:'✦';position:absolute;bottom:-22px;left:50%;transform:translateX(-50%);font-size:14px;color:var(--gold);opacity:.5;background:transparent;padding:0 8px;pointer-events:none}
 .topbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
 .topbar-item{background:var(--panel);border:1.5px solid var(--border);border-radius:30px;padding:7px 16px;font-size:13px;color:var(--text);backdrop-filter:blur(8px);white-space:nowrap;cursor:pointer;transition:all .2s;box-shadow:0 2px 8px rgba(0,0,0,.07)}
 .topbar-item:hover{background:rgba(255,255,255,.9)}
@@ -91,12 +87,12 @@ body{font-family:'Noto Serif SC',serif;background:var(--bg);min-height:100vh;col
 .card-label{font-size:11px;text-align:center;color:var(--text-light);margin-top:4px;font-weight:500}
 .multi-card-area{display:flex;flex-wrap:wrap;justify-content:center;gap:14px;padding:8px}
 .card-placeholder{width:140px;height:200px;background:#d8dce0;border-radius:13px;display:flex;align-items:center;justify-content:center;color:#aaa;font-size:13px;border:2px dashed #c0c4c8}
-.reading-panel{background:var(--panel);border:1.5px solid var(--border);border-radius:var(--radius);padding:16px;min-height:110px;box-shadow:var(--shadow);backdrop-filter:blur(8px);margin-bottom:14px}
+.reading-panel{background:var(--panel);border:1.5px solid var(--border);border-radius:var(--radius);padding:16px;min-height:110px;box-shadow:var(--shadow);backdrop-filter:blur(8px);margin-bottom:28px}
 .reading-label{font-size:12px;color:var(--text-light);margin-bottom:8px}
 .reading-content{font-size:14.5px;line-height:1.95;color:var(--text)}.reading-content p{margin-bottom:12px;text-indent:2em;line-height:1.95}.reading-content p:last-child{margin-bottom:0}.reading-section-title{font-size:14px;font-weight:700;color:var(--gold-dark);margin:16px 0 6px;letter-spacing:1px}.reading-section-title:first-child{margin-top:0}
 .reading-content.streaming::after{content:'▋';animation:blink .7s infinite;color:var(--gold)}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
-.chat-area{background:var(--panel);border:1.5px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);backdrop-filter:blur(8px)}
+.chat-area{background:var(--panel);border:1.5px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);backdrop-filter:blur(8px);margin-top:6px}
 .chat-messages{max-height:280px;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px}
 .chat-bubble{max-width:85%;padding:9px 13px;border-radius:15px;font-size:13.5px;line-height:1.7;animation:bubbleIn .3s ease}
 @keyframes bubbleIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
@@ -107,7 +103,15 @@ body{font-family:'Noto Serif SC',serif;background:var(--bg);min-height:100vh;col
 .chat-input::placeholder{color:#bbb}
 .chat-send-btn{width:34px;height:34px;border-radius:50%;border:none;background:var(--gold);color:#fff;font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0}
 .chat-send-btn:hover{background:var(--gold-dark);transform:scale(1.08)}
-.spinner{width:26px;height:26px;border:3px solid #e8d5a3;border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite;margin:8px auto;display:none}
+.spinner{display:none;flex-direction:column;align-items:center;gap:10px;padding:12px 0}
+.spinner-cards{display:flex;gap:8px;justify-content:center}
+.spinner-card{width:18px;height:28px;border-radius:4px;background:linear-gradient(135deg,#2d1a4a,#1a0f35);border:1px solid rgba(201,168,76,.4);animation:cardFloat 1.2s ease-in-out infinite}
+.spinner-card:nth-child(1){animation-delay:0s}
+.spinner-card:nth-child(2){animation-delay:.2s}
+.spinner-card:nth-child(3){animation-delay:.4s}
+@keyframes cardFloat{0%,100%{transform:translateY(0);opacity:.5}50%{transform:translateY(-8px);opacity:1}}
+.spinner-text{font-size:12px;color:var(--text-light);letter-spacing:1px;animation:fadeInOut 2s ease infinite}
+@keyframes fadeInOut{0%,100%{opacity:.4}50%{opacity:1}}
 @keyframes spin{to{transform:rotate(360deg)}}
 .modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:center;justify-content:center;padding:16px}
 .modal-bg.open{display:flex}
@@ -190,18 +194,18 @@ body{font-family:'Noto Serif SC',serif;background:var(--bg);min-height:100vh;col
  
   <!-- 黄道十二宫 -->
   <div class="zodiac-strip">
-    <div class="zodiac-item"><div class="zodiac-icon">♈</div><div class="zodiac-name">白羊</div></div>
-    <div class="zodiac-item"><div class="zodiac-icon">♉</div><div class="zodiac-name">金牛</div></div>
-    <div class="zodiac-item"><div class="zodiac-icon">♊</div><div class="zodiac-name">双子</div></div>
-    <div class="zodiac-item"><div class="zodiac-icon">♋</div><div class="zodiac-name">巨蟹</div></div>
-    <div class="zodiac-item"><div class="zodiac-icon">♌</div><div class="zodiac-name">狮子</div></div>
-    <div class="zodiac-item"><div class="zodiac-icon">♍</div><div class="zodiac-name">处女</div></div>
-    <div class="zodiac-item"><div class="zodiac-icon">♎</div><div class="zodiac-name">天秤</div></div>
-    <div class="zodiac-item"><div class="zodiac-icon">♏</div><div class="zodiac-name">天蝎</div></div>
-    <div class="zodiac-item"><div class="zodiac-icon">♐</div><div class="zodiac-name">射手</div></div>
-    <div class="zodiac-item"><div class="zodiac-icon">♑</div><div class="zodiac-name">摩羯</div></div>
-    <div class="zodiac-item"><div class="zodiac-icon">♒</div><div class="zodiac-name">水瓶</div></div>
-    <div class="zodiac-item"><div class="zodiac-icon">♓</div><div class="zodiac-name">双鱼</div></div>
+    <div class="zodiac-item"><div class="zodiac-icon">♈</div></div>
+    <div class="zodiac-item"><div class="zodiac-icon">♉</div></div>
+    <div class="zodiac-item"><div class="zodiac-icon">♊</div></div>
+    <div class="zodiac-item"><div class="zodiac-icon">♋</div></div>
+    <div class="zodiac-item"><div class="zodiac-icon">♌</div></div>
+    <div class="zodiac-item"><div class="zodiac-icon">♍</div></div>
+    <div class="zodiac-item"><div class="zodiac-icon">♎</div></div>
+    <div class="zodiac-item"><div class="zodiac-icon">♏</div></div>
+    <div class="zodiac-item"><div class="zodiac-icon">♐</div></div>
+    <div class="zodiac-item"><div class="zodiac-icon">♑</div></div>
+    <div class="zodiac-item"><div class="zodiac-icon">♒</div></div>
+    <div class="zodiac-item"><div class="zodiac-icon">♓</div></div>
   </div>
  
   <div id="mainContent">
@@ -235,17 +239,25 @@ body{font-family:'Noto Serif SC',serif;background:var(--bg);min-height:100vh;col
       <div class="panel" id="singleCardArea" style="display:none">
         <div id="singleCardContent" class="card-area"><div class="card-placeholder">塔罗牌</div></div>
       </div>
-      <div style="text-align:center;margin:8px 0">
+      <div style="text-align:center;margin:8px 0 24px">
         <button class="btn btn-read" id="singleReadBtn" onclick="readSingle()" disabled>解　读</button>
       </div>
       <div class="reading-panel">
         <div class="reading-label">解读内容：</div>
         <div class="reading-content" id="singleReadingText"></div>
-        <div class="spinner" id="singleSpinner"></div>
+        <div class="spinner" id="singleSpinner">
+          <div class="spinner-cards">
+            <div class="spinner-card"></div>
+            <div class="spinner-card"></div>
+            <div class="spinner-card"></div>
+          </div>
+          <div class="spinner-text" id="singleSpinnerText">正在解读牌意，请稍候...</div>
+        </div>
       </div>
       <div id="singleSaveBtnWrap" style="display:none">
         <button class="save-reading-btn" id="singleSaveBtn" onclick="saveCurrentReading('single')">🔖 保存此次占卜记录</button>
       </div>
+      <div style="height:12px"></div>
       <div class="chat-area">
         <div class="chat-messages" id="singleMessages"></div>
         <div class="chat-input-row">
@@ -280,17 +292,25 @@ body{font-family:'Noto Serif SC',serif;background:var(--bg);min-height:100vh;col
       <div class="panel" id="multiCardArea" style="display:none">
         <div class="multi-card-area" id="multiCardContent"></div>
       </div>
-      <div style="text-align:center;margin:8px 0">
+      <div style="text-align:center;margin:8px 0 24px">
         <button class="btn btn-read" id="multiReadBtn" onclick="readMulti()" disabled>解　读</button>
       </div>
       <div class="reading-panel">
         <div class="reading-label">解读内容：</div>
         <div class="reading-content" id="multiReadingText"></div>
-        <div class="spinner" id="multiSpinner"></div>
+        <div class="spinner" id="multiSpinner">
+          <div class="spinner-cards">
+            <div class="spinner-card"></div>
+            <div class="spinner-card"></div>
+            <div class="spinner-card"></div>
+          </div>
+          <div class="spinner-text" id="multiSpinnerText">正在解读牌意，请稍候...</div>
+        </div>
       </div>
       <div id="multiSaveBtnWrap" style="display:none">
         <button class="save-reading-btn" id="multiSaveBtn" onclick="saveCurrentReading('multi')">🔖 保存此次占卜记录</button>
       </div>
+      <div style="height:12px"></div>
       <div class="chat-area">
         <div class="chat-messages" id="multiMessages"></div>
         <div class="chat-input-row">
@@ -588,7 +608,7 @@ function readSingle() {
   document.getElementById('singleReadingText').textContent = '';
   document.getElementById('singleReadingText').classList.add('streaming');
   document.getElementById('singleReadBtn').disabled = true;
-  document.getElementById('singleSpinner').style.display = 'block';
+  document.getElementById('singleSpinner').style.display = 'flex'; startSpinnerText('single');
   state.singleHistory = [{role:'user', content:'请根据以下信息进行塔罗牌解读：\n'+ctx}];
   callAI(sys, state.singleHistory, function(partial) {
     renderReading('singleReadingText', partial);
@@ -597,13 +617,13 @@ function readSingle() {
     state.singleReadingText = result;
     renderReading('singleReadingText', result);
     document.getElementById('singleReadingText').classList.remove('streaming');
-    document.getElementById('singleSpinner').style.display = 'none';
+    document.getElementById('singleSpinner').style.display = 'none'; stopSpinnerText('single'); stopSpinnerText('single'); stopSpinnerText('single'); stopSpinnerMessages('single'); stopSpinnerText('single'); stopSpinnerText('single'); stopSpinnerText('single');
     document.getElementById('singleReadBtn').disabled = false;
     document.getElementById('singleSaveBtnWrap').style.display = 'block';
   }).catch(function(e) {
     document.getElementById('singleReadingText').textContent = '解读失败：' + e.message;
     document.getElementById('singleReadingText').classList.remove('streaming');
-    document.getElementById('singleSpinner').style.display = 'none';
+    document.getElementById('singleSpinner').style.display = 'none'; stopSpinnerText('single'); stopSpinnerText('single'); stopSpinnerText('single'); stopSpinnerMessages('single'); stopSpinnerText('single'); stopSpinnerText('single'); stopSpinnerText('single');
     document.getElementById('singleReadBtn').disabled = false;
   });
 }
@@ -661,7 +681,7 @@ function readMulti() {
   document.getElementById('multiReadingText').textContent = '';
   document.getElementById('multiReadingText').classList.add('streaming');
   document.getElementById('multiReadBtn').disabled = true;
-  document.getElementById('multiSpinner').style.display = 'block';
+  document.getElementById('multiSpinner').style.display = 'flex'; startSpinnerText('multi');
   state.multiHistory = [{role:'user', content:'请根据以下信息进行塔罗牌解读：\n'+ctx}];
   callAI(sys, state.multiHistory, function(partial) {
     renderReading('multiReadingText', partial);
@@ -670,13 +690,13 @@ function readMulti() {
     state.multiReadingText = result;
     renderReading('multiReadingText', result);
     document.getElementById('multiReadingText').classList.remove('streaming');
-    document.getElementById('multiSpinner').style.display = 'none';
+    document.getElementById('multiSpinner').style.display = 'none'; stopSpinnerText('multi'); stopSpinnerText('multi'); stopSpinnerText('multi'); stopSpinnerMessages('multi'); stopSpinnerText('multi'); stopSpinnerText('multi'); stopSpinnerText('multi');
     document.getElementById('multiReadBtn').disabled = false;
     document.getElementById('multiSaveBtnWrap').style.display = 'block';
   }).catch(function(e) {
     document.getElementById('multiReadingText').textContent = '解读失败：' + e.message;
     document.getElementById('multiReadingText').classList.remove('streaming');
-    document.getElementById('multiSpinner').style.display = 'none';
+    document.getElementById('multiSpinner').style.display = 'none'; stopSpinnerText('multi'); stopSpinnerText('multi'); stopSpinnerText('multi'); stopSpinnerMessages('multi'); stopSpinnerText('multi'); stopSpinnerText('multi'); stopSpinnerText('multi');
     document.getElementById('multiReadBtn').disabled = false;
   });
 }
@@ -817,6 +837,12 @@ var PAGE_ACCESS_KEY = '030213';
 // ── 内置 Worker 配置 ──────────────────────────────────────────
 var BUILTIN_WORKER_URL = 'https://lucky-poetry-af98.2654608344qq.workers.dev';
 var BUILTIN_ACCESS_SECRET = '030213';
+var DEEPSEEK_DIRECT_KEY = 'sk-59d9efd6ae814702a624ad30a9378f53';
+var DEEPSEEK_DIRECT_KEY = 'sk-59d9efd6ae814702a624ad30a9378f53';
+var DEEPSEEK_DIRECT_KEY = 'sk-59d9efd6ae814702a624ad30a9378f53';
+var DEEPSEEK_DIRECT_KEY = 'sk-59d9efd6ae814702a624ad30a9378f53';
+var DEEPSEEK_DIRECT_KEY = 'sk-59d9efd6ae814702a624ad30a9378f53';
+var DEEPSEEK_DIRECT_KEY = 'sk-59d9efd6ae814702a624ad30a9378f53';
  
 // 访问门控逻辑
 function checkAccess() {
@@ -963,6 +989,81 @@ function callDeepSeekDirect(systemPrompt, messages, onChunk, maxTok) {
   });
 }
  
+// 加载提示轮播
+var SPINNER_TEXTS = ['正在解读命运的轨迹...','牌面正在向我倾诉...','请您稍等一会儿...','星辰为您指引方向...','感知宇宙的能量流动...','智慧正在汇聚...','塔罗牌正在显现...'];
+var spinnerTimers = {};
+function startSpinnerText(mode) {
+  var el = document.getElementById(mode + 'SpinnerText');
+  if (!el) return;
+  var idx = 0;
+  el.textContent = SPINNER_TEXTS[0];
+  spinnerTimers[mode] = setInterval(function() {
+    idx = (idx + 1) % SPINNER_TEXTS.length;
+    el.textContent = SPINNER_TEXTS[idx];
+  }, 2200);
+}
+function stopSpinnerText(mode) {
+  if (spinnerTimers[mode]) { clearInterval(spinnerTimers[mode]); delete spinnerTimers[mode]; }
+}
+ 
+ 
+// 加载提示语轮换
+var SPINNER_MSGS = [
+  '请您稍候，星盘正在运转...',
+  '牌面能量汇聚中，请稍等...',
+  '命运之轮徐徐转动，请稍候...',
+  '占卜师正在解读牌义...',
+  '宇宙的讯息正在传递...',
+  '请您稍候片刻...',
+  '塔罗智慧正在凝聚...',
+];
+var _spinnerTimers = {};
+function startSpinnerText(mode) {
+  var elId = mode + 'SpinnerText';
+  var idx = 0;
+  var el = document.getElementById(elId);
+  if (el) el.textContent = SPINNER_MSGS[0];
+  _spinnerTimers[mode] = setInterval(function() {
+    idx = (idx + 1) % SPINNER_MSGS.length;
+    var e = document.getElementById(elId);
+    if (e) e.textContent = SPINNER_MSGS[idx];
+  }, 2000);
+}
+function stopSpinnerText(mode) {
+  if (_spinnerTimers[mode]) {
+    clearInterval(_spinnerTimers[mode]);
+    delete _spinnerTimers[mode];
+  }
+}
+ 
+// 加载提示语轮换
+var spinnerHintTimers = {};
+var spinnerHints = [
+  '正在解读牌意...',
+  '星象正在汇聚...',
+  '塔罗牌在诉说...',
+  '命运的答案浮现中...',
+  '占星师在沉思...',
+  '宇宙能量流动中...',
+  '请您稍候片刻...'
+];
+function startSpinnerHints(mode) {
+  var idx = 0;
+  var el = document.getElementById(mode + 'SpinnerText');
+  if (!el) return;
+  el.textContent = spinnerHints[0];
+  spinnerHintTimers[mode] = setInterval(function() {
+    idx = (idx + 1) % spinnerHints.length;
+    if (el) el.textContent = spinnerHints[idx];
+  }, 2000);
+}
+function stopSpinnerHints(mode) {
+  if (spinnerHintTimers[mode]) {
+    clearInterval(spinnerHintTimers[mode]);
+    delete spinnerHintTimers[mode];
+  }
+}
+ 
 // 分段渲染解读内容（支持【标题】段落格式和首行缩进）
 function renderReading(elId, text, el) {
   var target = el || document.getElementById(elId);
@@ -988,6 +1089,242 @@ function renderReading(elId, text, el) {
     }
   }
   target.innerHTML = html || '<p>' + text + '</p>';
+}
+ 
+// 趣味等待提示语轮播
+var SPINNER_TEXTS = [
+  '正在解读牌意，请稍候...',
+  '星辰正在低语，请稍等...',
+  '命运的脉络正在浮现...',
+  '塔罗牌正在向您诉说...',
+  '宇宙能量汇聚中...',
+  '智慧之光正在凝聚...',
+  '请稍候，答案即将揭晓...'
+];
+var spinnerTimers = {};
+function startSpinnerText(mode) {
+  var el = document.getElementById(mode + 'SpinnerText');
+  if (!el) return;
+  var idx = 0;
+  el.textContent = SPINNER_TEXTS[0];
+  spinnerTimers[mode] = setInterval(function() {
+    idx = (idx + 1) % SPINNER_TEXTS.length;
+    el.textContent = SPINNER_TEXTS[idx];
+  }, 2200);
+}
+function stopSpinnerText(mode) {
+  if (spinnerTimers[mode]) { clearInterval(spinnerTimers[mode]); delete spinnerTimers[mode]; }
+}
+ 
+// 等待文字轮播
+var _spinnerTimers = {};
+function startSpinnerText(mode) {
+  var msgs = ['正在解读牌意，请稍候...','星光指引，答案正在浮现...','命运之轮轻轻转动...','牌意深处，洞见将至...','神秘力量汇聚中...','占星与牌义交汇...'];
+  var i = 0;
+  var el = document.getElementById(mode+'SpinnerText');
+  if (el) el.textContent = msgs[0];
+  _spinnerTimers[mode] = setInterval(function() {
+    i = (i + 1) % msgs.length;
+    var e = document.getElementById(mode+'SpinnerText');
+    if (e) e.textContent = msgs[i];
+  }, 2000);
+}
+function stopSpinnerText(mode) {
+  if (_spinnerTimers[mode]) { clearInterval(_spinnerTimers[mode]); delete _spinnerTimers[mode]; }
+}
+ 
+// 加载提示语轮播
+var SPINNER_MSGS = [
+  '正在解读牌意，请稍候...',
+  '星光引路，智慧汇聚...',
+  '请您稍等一会儿...',
+  '塔罗古卡正在诉说...',
+  '宇宙能量正在传递...',
+  '命运的纱幕缓缓揭开...',
+  '占卜师凝神感应中...'
+];
+var _spinnerTimers = {};
+function startSpinnerText(mode) {
+  var elId = mode + 'SpinnerText';
+  var idx = 0;
+  if (_spinnerTimers[mode]) clearInterval(_spinnerTimers[mode]);
+  _spinnerTimers[mode] = setInterval(function() {
+    idx = (idx + 1) % SPINNER_MSGS.length;
+    var el = document.getElementById(elId);
+    if (el) el.textContent = SPINNER_MSGS[idx];
+  }, 2000);
+}
+function stopSpinnerText(mode) {
+  if (_spinnerTimers[mode]) { clearInterval(_spinnerTimers[mode]); _spinnerTimers[mode] = null; }
+}
+ 
+// 等待提示语轮播
+var SPINNER_TEXTS = [
+  '正在感应塔罗能量，请稍候...',
+  '星盘正在为您指引方向...',
+  '牌面的奥义正在显现...',
+  '宇宙的信息正在传递...',
+  '占卜师正在深度解读...',
+  '神秘的力量正在汇聚...'
+];
+var spinnerTimers = {};
+function startSpinnerText(mode) {
+  var idx = 0;
+  var elId = mode + 'SpinnerText';
+  if (spinnerTimers[mode]) clearInterval(spinnerTimers[mode]);
+  var el = document.getElementById(elId);
+  if (el) el.textContent = SPINNER_TEXTS[0];
+  spinnerTimers[mode] = setInterval(function() {
+    idx = (idx + 1) % SPINNER_TEXTS.length;
+    var el2 = document.getElementById(elId);
+    if (el2) el2.textContent = SPINNER_TEXTS[idx];
+  }, 2500);
+}
+function stopSpinnerText(mode) {
+  if (spinnerTimers[mode]) { clearInterval(spinnerTimers[mode]); delete spinnerTimers[mode]; }
+}
+ 
+// 等待提示轮播
+var SPINNER_MSGS = [
+  '请您稍等一会儿，占卜师正在凝神...',
+  '星盘正在旋转，请稍候...',
+  '塔罗牌的智慧需要片刻沉淀...',
+  '宇宙的信息正在汇聚...',
+  '请耐心等待，答案正在浮现...',
+  '牌面能量正在解析中...',
+  '命运之线正在编织，请稍候...'
+];
+var spinnerTimers = {};
+function startSpinnerMessages(mode) {
+  var idx = 0;
+  var elId = mode + 'SpinnerText';
+  var el = document.getElementById(elId);
+  if (!el) return;
+  el.textContent = SPINNER_MSGS[0];
+  spinnerTimers[mode] = setInterval(function() {
+    idx = (idx + 1) % SPINNER_MSGS.length;
+    if (el) el.textContent = SPINNER_MSGS[idx];
+  }, 2500);
+}
+function stopSpinnerMessages(mode) {
+  if (spinnerTimers[mode]) { clearInterval(spinnerTimers[mode]); delete spinnerTimers[mode]; }
+}
+ 
+// 加载等待文字轮换
+var SPINNER_MSGS = ['✦ 牌面正在显现，请稍候 ✦','✧ 宇宙能量汇聚中… ✧','✦ 塔罗智慧正在解读 ✦','✧ 星象与牌义交融中… ✧','✦ 命运的讯息即将到来 ✦'];
+var spinnerTimers = {};
+function startSpinnerText(mode) {
+  var idx = 0;
+  var elId = mode + 'SpinnerText';
+  stopSpinnerText(mode);
+  spinnerTimers[mode] = setInterval(function() {
+    idx = (idx + 1) % SPINNER_MSGS.length;
+    var el = document.getElementById(elId);
+    if (el) el.textContent = SPINNER_MSGS[idx];
+  }, 2200);
+}
+function stopSpinnerText(mode) {
+  if (spinnerTimers[mode]) { clearInterval(spinnerTimers[mode]); spinnerTimers[mode] = null; }
+  var elId = mode + 'SpinnerText';
+  var el = document.getElementById(elId);
+  if (el) el.textContent = SPINNER_MSGS[0];
+}
+ 
+ 
+// ── 加载提示语循环 ──────────────────────────────────────────
+var SPINNER_MSGS = [
+  '正在解读牌意，请稍候...',
+  '星象正在排列，请稍等...',
+  '占卜师凝神感应中...',
+  '宇宙能量汇聚中...',
+  '命运之轮转动，稍候...',
+  '古老的智慧正在觉醒...',
+  '塔罗牌诉说着答案...',
+  '解读来自星辰的讯息...'
+];
+var spinnerTimers = {};
+function startSpinnerText(mode) {
+  var elId = mode + 'SpinnerText';
+  var idx = 0;
+  spinnerTimers[mode] = setInterval(function() {
+    idx = (idx + 1) % SPINNER_MSGS.length;
+    var el = document.getElementById(elId);
+    if (el) el.textContent = SPINNER_MSGS[idx];
+  }, 2500);
+}
+function stopSpinnerText(mode) {
+  if (spinnerTimers[mode]) { clearInterval(spinnerTimers[mode]); delete spinnerTimers[mode]; }
+  var el = document.getElementById(mode + 'SpinnerText');
+  if (el) el.textContent = SPINNER_MSGS[0];
+}
+// 等待提示文字轮换
+var _spinnerTimer = null;
+var _spinnerMsgs = [
+  '✦ 星盘正在感应中，请稍候... ✦',
+  '✧ 塔罗牌正在为你揭示答案... ✧',
+  '✦ 宇宙能量汇聚中，请稍等... ✦',
+  '✧ 命运之轮徐徐转动... ✧',
+  '✦ 神秘的牌义正在浮现... ✦',
+  '✧ 占星师正在解读星象... ✧'
+];
+function startSpinnerText(elId) {
+  var el = document.getElementById(elId);
+  if (!el) return;
+  var idx = 0;
+  el.textContent = _spinnerMsgs[0];
+  _spinnerTimer = setInterval(function() {
+    idx = (idx + 1) % _spinnerMsgs.length;
+    if (el) el.textContent = _spinnerMsgs[idx];
+  }, 2500);
+}
+function stopSpinnerText() {
+  if (_spinnerTimer) { clearInterval(_spinnerTimer); _spinnerTimer = null; }
+}
+ 
+// 等待提示文字轮换
+var spinnerTimers = {};
+var spinnerMsgs = [
+  '正在解读牌意，请稍候...',
+  '塔罗正在为您指引方向...',
+  '星辰与牌义交织之中...',
+  '请您静心片刻，答案即将揭晓...',
+  '命运的密语正在解析...'
+];
+function startSpinnerText(mode) {
+  var idx = 0;
+  var el = document.getElementById(mode + 'SpinnerText');
+  if (!el) return;
+  el.textContent = spinnerMsgs[0];
+  spinnerTimers[mode] = setInterval(function() {
+    idx = (idx + 1) % spinnerMsgs.length;
+    if (el) el.textContent = spinnerMsgs[idx];
+  }, 2500);
+}
+function stopSpinnerText(mode) {
+  clearInterval(spinnerTimers[mode]);
+}
+ 
+// 加载文字循环
+var SPINNER_MSGS = [
+  '正在解读星盘，请稍候…',
+  '占卜师正在凝神观牌…',
+  '星辰与牌义正在交汇…',
+  '命运的答案即将揭晓…',
+  '请稍等片刻，智慧正在汇聚…'
+];
+var spinnerTimers = {};
+function startSpinnerText(mode) {
+  var el = document.getElementById(mode + 'SpinnerText');
+  if (!el) return;
+  var idx = 0;
+  el.textContent = SPINNER_MSGS[0];
+  spinnerTimers[mode] = setInterval(function() {
+    idx = (idx + 1) % SPINNER_MSGS.length;
+    el.textContent = SPINNER_MSGS[idx];
+  }, 2200);
+}
+function stopSpinnerText(mode) {
+  if (spinnerTimers[mode]) { clearInterval(spinnerTimers[mode]); delete spinnerTimers[mode]; }
 }
  
 // 打字机效果
