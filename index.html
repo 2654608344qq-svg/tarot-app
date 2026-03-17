@@ -8,7 +8,7 @@
 <style>
 :root{--bg:#dde8f0;--gold:#c9a84c;--gold-light:#e8d5a3;--gold-dark:#8b6914;--text:#2c2c3e;--text-light:#666;--shadow:0 4px 24px rgba(100,80,40,0.13);--radius:18px;--panel:rgba(255,255,255,0.72);--border:rgba(201,168,76,0.25)}
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Noto Serif SC',serif;background:var(--bg);min-height:100vh;color:var(--text);background-image:radial-gradient(ellipse at 20% 20%,rgba(201,168,76,.08) 0%,transparent 60%),radial-gradient(ellipse at 80% 80%,rgba(180,160,220,.10) 0%,transparent 60%)}
+body{font-family:'Noto Serif SC',serif;background:var(--bg);min-height:100vh;color:var(--text);background-image:radial-gradient(ellipse at 15% 15%,rgba(201,168,76,.10) 0%,transparent 55%),radial-gradient(ellipse at 85% 80%,rgba(160,120,220,.12) 0%,transparent 55%),radial-gradient(ellipse at 50% 50%,rgba(255,255,255,.04) 0%,transparent 70%)}
  
 /* ── 访问密钥门 ── */
 .access-gate{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;
@@ -34,6 +34,23 @@ body{font-family:'Noto Serif SC',serif;background:var(--bg);min-height:100vh;col
 .gate-hint{font-size:11.5px;color:rgba(255,255,255,.2);margin-top:20px;line-height:1.7}
  
 .app{max-width:700px;margin:0 auto;padding:18px 14px 80px}
+ 
+/* ── 塔罗装饰元素 ── */
+.tarot-header{text-align:center;padding:16px 0 8px;margin-bottom:4px;position:relative}
+.tarot-header-title{font-size:22px;font-weight:700;color:var(--gold-dark);letter-spacing:4px;text-shadow:0 1px 8px rgba(201,168,76,.2)}
+.tarot-header-sub{font-size:11px;color:var(--text-light);letter-spacing:2px;margin-top:4px}
+.tarot-header-stars{font-size:14px;letter-spacing:6px;color:rgba(201,168,76,.6);margin-bottom:4px}
+.tarot-divider{display:flex;align-items:center;gap:10px;margin:10px 0;opacity:.6}
+.tarot-divider::before,.tarot-divider::after{content:'';flex:1;height:1px;background:linear-gradient(to right,transparent,var(--gold),transparent)}
+.tarot-divider-icon{font-size:14px;color:var(--gold);flex-shrink:0}
+.zodiac-strip{display:flex;justify-content:center;gap:14px;padding:6px 0;margin-bottom:12px;overflow:hidden}
+.zodiac-item{display:flex;flex-direction:column;align-items:center;gap:2px;opacity:.45;transition:opacity .2s;cursor:default}
+.zodiac-item:hover{opacity:.8}
+.zodiac-icon{font-size:18px}
+.zodiac-name{font-size:9px;color:var(--text-light);letter-spacing:.5px}
+.moon-phase{position:fixed;bottom:20px;right:20px;font-size:28px;opacity:.18;pointer-events:none;filter:drop-shadow(0 0 8px rgba(201,168,76,.4))}
+.reading-panel{position:relative}
+.reading-panel::before{content:'✦';position:absolute;top:-10px;left:50%;transform:translateX(-50%);font-size:16px;color:var(--gold);opacity:.6;background:var(--bg);padding:0 8px}
 .topbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
 .topbar-item{background:var(--panel);border:1.5px solid var(--border);border-radius:30px;padding:7px 16px;font-size:13px;color:var(--text);backdrop-filter:blur(8px);white-space:nowrap;cursor:pointer;transition:all .2s;box-shadow:0 2px 8px rgba(0,0,0,.07)}
 .topbar-item:hover{background:rgba(255,255,255,.9)}
@@ -76,7 +93,7 @@ body{font-family:'Noto Serif SC',serif;background:var(--bg);min-height:100vh;col
 .card-placeholder{width:140px;height:200px;background:#d8dce0;border-radius:13px;display:flex;align-items:center;justify-content:center;color:#aaa;font-size:13px;border:2px dashed #c0c4c8}
 .reading-panel{background:var(--panel);border:1.5px solid var(--border);border-radius:var(--radius);padding:16px;min-height:110px;box-shadow:var(--shadow);backdrop-filter:blur(8px);margin-bottom:14px}
 .reading-label{font-size:12px;color:var(--text-light);margin-bottom:8px}
-.reading-content{font-size:14.5px;line-height:1.85;color:var(--text);white-space:pre-wrap}
+.reading-content{font-size:14.5px;line-height:1.95;color:var(--text)}.reading-content p{margin-bottom:12px;text-indent:2em;line-height:1.95}.reading-content p:last-child{margin-bottom:0}.reading-section-title{font-size:14px;font-weight:700;color:var(--gold-dark);margin:16px 0 6px;letter-spacing:1px}.reading-section-title:first-child{margin-top:0}
 .reading-content.streaming::after{content:'▋';animation:blink .7s infinite;color:var(--gold)}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
 .chat-area{background:var(--panel);border:1.5px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);backdrop-filter:blur(8px)}
@@ -164,6 +181,29 @@ body{font-family:'Noto Serif SC',serif;background:var(--bg);min-height:100vh;col
     <div class="topbar-item" id="historyTopBtn" onclick="showHistory()" style="background:rgba(200,210,240,.6)">📜 历史</div>
   </div>
  
+  <!-- 塔罗装饰头部 -->
+  <div class="tarot-header">
+    <div class="tarot-header-stars">✦ ✧ ✦ ✧ ✦</div>
+    <div class="tarot-header-title">塔 罗 占 卜</div>
+    <div class="tarot-header-sub">TAROT · ORACLE · DIVINATION</div>
+  </div>
+ 
+  <!-- 黄道十二宫 -->
+  <div class="zodiac-strip">
+    <div class="zodiac-item"><div class="zodiac-icon">♈</div><div class="zodiac-name">白羊</div></div>
+    <div class="zodiac-item"><div class="zodiac-icon">♉</div><div class="zodiac-name">金牛</div></div>
+    <div class="zodiac-item"><div class="zodiac-icon">♊</div><div class="zodiac-name">双子</div></div>
+    <div class="zodiac-item"><div class="zodiac-icon">♋</div><div class="zodiac-name">巨蟹</div></div>
+    <div class="zodiac-item"><div class="zodiac-icon">♌</div><div class="zodiac-name">狮子</div></div>
+    <div class="zodiac-item"><div class="zodiac-icon">♍</div><div class="zodiac-name">处女</div></div>
+    <div class="zodiac-item"><div class="zodiac-icon">♎</div><div class="zodiac-name">天秤</div></div>
+    <div class="zodiac-item"><div class="zodiac-icon">♏</div><div class="zodiac-name">天蝎</div></div>
+    <div class="zodiac-item"><div class="zodiac-icon">♐</div><div class="zodiac-name">射手</div></div>
+    <div class="zodiac-item"><div class="zodiac-icon">♑</div><div class="zodiac-name">摩羯</div></div>
+    <div class="zodiac-item"><div class="zodiac-icon">♒</div><div class="zodiac-name">水瓶</div></div>
+    <div class="zodiac-item"><div class="zodiac-icon">♓</div><div class="zodiac-name">双鱼</div></div>
+  </div>
+ 
   <div id="mainContent">
     <div class="mode-tabs">
       <button class="mode-tab active" id="tabSingle" onclick="switchMode('single')">单张牌阵</button>
@@ -188,6 +228,7 @@ body{font-family:'Noto Serif SC',serif;background:var(--bg);min-height:100vh;col
         <textarea class="question-input" id="singleQuestion" placeholder="在此输入你的问题..." rows="2"></textarea>
         <div class="question-hint">（今日运势、本月运势可不填）</div>
       </div>
+      <div class="tarot-divider"><div class="tarot-divider-icon">🔮</div></div>
       <div style="text-align:center;margin:8px 0">
         <button class="btn btn-draw" onclick="drawSingleCards()">抽　取</button>
       </div>
@@ -232,6 +273,7 @@ body{font-family:'Noto Serif SC',serif;background:var(--bg);min-height:100vh;col
         <div style="font-size:14px;color:var(--text-light);margin-bottom:7px;font-weight:600">请输入问题：</div>
         <textarea class="question-input" id="multiQuestion" placeholder="在此输入你的问题..." rows="2"></textarea>
       </div>
+      <div class="tarot-divider"><div class="tarot-divider-icon">🔮</div></div>
       <div style="text-align:center;margin:8px 0">
         <button class="btn btn-draw" onclick="drawMultiCards()">抽　取</button>
       </div>
@@ -270,6 +312,7 @@ body{font-family:'Noto Serif SC',serif;background:var(--bg);min-height:100vh;col
     <div id="historyList"></div>
   </div>
 </div>
+<div class='moon-phase'>☽</div>
  
 <!-- LOCATION MODAL -->
 <div class="modal-bg" id="locationModal">
@@ -541,18 +584,18 @@ function readSingle() {
   var now = new Date();
   var days = ['日','一','二','三','四','五','六'];
   var ctx = '时间：'+now.getFullYear()+'年'+(now.getMonth()+1)+'月'+now.getDate()+'日 星期'+days[now.getDay()]+'\n地点：'+state.location.city+'\n天气：'+state.weather+'\n牌阵：单张牌阵 - '+(typeLabels[singleType]||'')+'\n问题：'+(question||'（无特定问题）')+'\n抽到的牌：'+cardNames;
-  var sys = '你是专业塔罗占卜师，精通韦特塔罗。禁用星号和markdown，纯文字输出。按三段回答：【牌面解读】解析牌义象征与正逆位含义；【环境解读】结合时间地点天气分析（周运势逐日）；【综合建议】针对问题给出理性分析和行动建议。'
+  var sys = '你是专业塔罗占卜师，精通韦特塔罗。纯文字输出，禁用符号。三段作答，每段150字内：\n【牌面解读】牌义象征与正逆位含义\n【环境解读】结合时间地点天气（周运势逐日简述）\n【综合建议】针对问题的分析与建议'
   document.getElementById('singleReadingText').textContent = '';
   document.getElementById('singleReadingText').classList.add('streaming');
   document.getElementById('singleReadBtn').disabled = true;
   document.getElementById('singleSpinner').style.display = 'block';
   state.singleHistory = [{role:'user', content:'请根据以下信息进行塔罗牌解读：\n'+ctx}];
   callAI(sys, state.singleHistory, function(partial) {
-    document.getElementById('singleReadingText').textContent = partial;
+    renderReading('singleReadingText', partial);
   }).then(function(result) {
     state.singleHistory.push({role:'assistant', content:result});
     state.singleReadingText = result;
-    document.getElementById('singleReadingText').textContent = result;
+    renderReading('singleReadingText', result);
     document.getElementById('singleReadingText').classList.remove('streaming');
     document.getElementById('singleSpinner').style.display = 'none';
     document.getElementById('singleReadBtn').disabled = false;
@@ -614,18 +657,18 @@ function readMulti() {
   }
   var now = new Date(); var days = ['日','一','二','三','四','五','六'];
   var ctx = '时间：'+now.getFullYear()+'年'+(now.getMonth()+1)+'月'+now.getDate()+'日 星期'+days[now.getDay()]+'\n地点：'+state.location.city+'\n天气：'+state.weather+'\n牌阵：万用牌阵 - '+(typeNames[multiType]||'')+'\n问题：'+(question||'（无特定问题）')+'\n抽到的牌：\n'+cardDesc+extra;
-  var sys = '你是专业塔罗占卜师，精通韦特塔罗多牌阵解读。禁用星号和markdown，纯文字输出。按三段回答：【牌面解读】逐张分析位置含义与正逆位差异及牌间关系；【环境解读】结合时间地点天气分析牌意显现；【综合建议】针对问题综合分析给出理性建议。';
+  var sys = '你是专业塔罗占卜师，精通韦特塔罗多牌阵解读。纯文字输出，禁用符号。三段作答，每段150字内：\n【牌面解读】逐张分析位置含义与正逆位差异\n【环境解读】结合时间地点天气分析\n【综合建议】综合分析与理性建议';
   document.getElementById('multiReadingText').textContent = '';
   document.getElementById('multiReadingText').classList.add('streaming');
   document.getElementById('multiReadBtn').disabled = true;
   document.getElementById('multiSpinner').style.display = 'block';
   state.multiHistory = [{role:'user', content:'请根据以下信息进行塔罗牌解读：\n'+ctx}];
   callAI(sys, state.multiHistory, function(partial) {
-    document.getElementById('multiReadingText').textContent = partial;
+    renderReading('multiReadingText', partial);
   }).then(function(result) {
     state.multiHistory.push({role:'assistant', content:result});
     state.multiReadingText = result;
-    document.getElementById('multiReadingText').textContent = result;
+    renderReading('multiReadingText', result);
     document.getElementById('multiReadingText').classList.remove('streaming');
     document.getElementById('multiSpinner').style.display = 'none';
     document.getElementById('multiReadBtn').disabled = false;
@@ -666,7 +709,7 @@ function sendChat(mode) {
   var trimmed = hist.length > 7 ? [hist[0]].concat(hist.slice(-6)) : hist;
   callAI(sys, trimmed, null, 600).then(function(result) {
     state[mode+'History'].push({role:'assistant', content:result});
-    aiBubble.textContent = result;
+    renderReading(null, result, aiBubble);
     state[mode+'ChatLog'].push({q:msg, a:result});
     messagesEl.scrollTop = messagesEl.scrollHeight;
   }).catch(function(e) { aiBubble.textContent='抱歉，回复失败：'+e.message; messagesEl.scrollTop=messagesEl.scrollHeight; });
@@ -806,7 +849,7 @@ if (sessionStorage.getItem('tarot_access') === '1') {
  
 // 先尝试 Worker（Gemini），失败则直连 DeepSeek
 function callAI(systemPrompt, messages, onChunk, maxTok) {
-  maxTok = maxTok || 1200;
+  maxTok = maxTok || 900;
   if (!BUILTIN_WORKER_URL) {
     return callDeepSeekDirect(systemPrompt, messages, onChunk, maxTok);
   }
@@ -865,7 +908,7 @@ function isChinaMainland(city) {
  
 // Worker 通道：走 Gemini（需要外网）
 function callBuiltinWorker(systemPrompt, messages, onChunk, maxTok) {
-  maxTok = maxTok || 1200;
+  maxTok = maxTok || 900;
   var headers = { 'Content-Type': 'application/json' };
   if (BUILTIN_ACCESS_SECRET) headers['X-Access-Secret'] = BUILTIN_ACCESS_SECRET;
   return fetch(BUILTIN_WORKER_URL, {
@@ -894,7 +937,7 @@ function callBuiltinWorker(systemPrompt, messages, onChunk, maxTok) {
  
 // 直连通道：走 DeepSeek 官方 API（国内无需翻墙）
 function callDeepSeekDirect(systemPrompt, messages, onChunk, maxTok) {
-  maxTok = maxTok || 1200;
+  maxTok = maxTok || 900;
   return fetch('https://api.deepseek.com/v1/chat/completions', {
     method: 'POST',
     headers: {
@@ -918,6 +961,33 @@ function callDeepSeekDirect(systemPrompt, messages, onChunk, maxTok) {
     if (data.error) throw new Error(data.error.message||'DeepSeek请求失败');
     return applyTypewriter(data.choices&&data.choices[0]&&data.choices[0].message&&data.choices[0].message.content||'', onChunk);
   });
+}
+ 
+// 分段渲染解读内容（支持【标题】段落格式和首行缩进）
+function renderReading(elId, text, el) {
+  var target = el || document.getElementById(elId);
+  if (!target) return;
+  // 将文本按【xxx】标题和空行分段
+  var html = '';
+  var lines = text.split(/\n+/);
+  for (var i = 0; i < lines.length; i++) {
+    var line = lines[i].trim();
+    if (!line) continue;
+    // 检测【标题】格式
+    if (/^【.+】/.test(line)) {
+      // 提取标题和后续内容
+      var titleMatch = line.match(/^(【.+?】)(.*)$/);
+      if (titleMatch) {
+        html += '<div class="reading-section-title">' + titleMatch[1] + '</div>';
+        if (titleMatch[2].trim()) {
+          html += '<p>' + titleMatch[2].trim() + '</p>';
+        }
+      }
+    } else {
+      html += '<p>' + line + '</p>';
+    }
+  }
+  target.innerHTML = html || '<p>' + text + '</p>';
 }
  
 // 打字机效果
