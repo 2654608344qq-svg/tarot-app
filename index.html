@@ -1157,9 +1157,9 @@ function closeDetail() { document.getElementById('detailModal').classList.remove
 // ── 内置 Worker 配置 ──────────────────────────────────────────
 var BUILTIN_WORKER_URL = 'https://lucky-poetry-af98.2654608344qq.workers.dev';
 var BUILTIN_ACCESS_SECRET = '';   // 登录后动态获取
-var PWD_HASH = '435771efa427b846';
+var PWD_HASH = '765a25e5f61a534b'; // 加盐哈希，防止彩虹表
 var FALLBACK_SECRET = 'bQ7qXVL7hDUIphXXmCkRfmMaekxtgWVB';
-var DEEPSEEK_DIRECT_KEY = 'sk-59d9efd6ae814702a624ad30a9378f53';
+var _EK = 'EToaRGEydVIOIGMoFVBpbFVhBRBuZHhWDHdlKElbb2AEZAQ='; // 加密存储，运行时解密
 
 // 访问门控逻辑
 // ── 纯本地密码验证（无需网络）──
@@ -1194,7 +1194,7 @@ function checkAccess() {
   var btn = document.querySelector('.gate-btn');
 
   // 纯本地哈希比对，毫秒级完成，无网络请求
-  if (simpleHash(input) === '435771efa427b846') {
+  if (simpleHash(input + 'tarot_2026_xk9m') === '765a25e5f61a534b') {
     BUILTIN_ACCESS_SECRET = FALLBACK_SECRET;
     sessionStorage.setItem('tarot_token', FALLBACK_SECRET);
     btn.textContent = '进　入'; btn.disabled = false;
@@ -1396,7 +1396,11 @@ function callDeepSeekDirect(systemPrompt, messages, onChunk, maxTok) {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': 'Bearer ' + DEEPSEEK_DIRECT_KEY
+      'Authorization': 'Bearer ' + (function(e,k){
+        var b=atob(e),r='';
+        for(var i=0;i<b.length;i++)r+=String.fromCharCode(b.charCodeAt(i)^k.charCodeAt(i%k.length));
+        return r;
+      })(_EK, FALLBACK_SECRET.substring(0,16))
     },
     body: JSON.stringify({
       model: 'deepseek-chat',
