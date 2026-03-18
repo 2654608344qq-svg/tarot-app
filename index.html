@@ -96,7 +96,7 @@ body{font-family:'Noto Serif SC',serif;background:var(--bg);min-height:100vh;col
 .card-placeholder{width:140px;height:200px;background:#d8dce0;border-radius:13px;display:flex;align-items:center;justify-content:center;color:#aaa;font-size:13px;border:2px dashed #c0c4c8}
 .reading-panel{background:var(--panel);border:1.5px solid var(--border);border-radius:var(--radius);padding:16px;min-height:110px;box-shadow:var(--shadow);backdrop-filter:blur(8px);margin-bottom:28px}
 .reading-label{font-size:12px;color:var(--text-light);margin-bottom:8px}
-.reading-oracle{text-align:center;font-size:16px;font-weight:600;color:var(--gold-dark);letter-spacing:2px;line-height:1.8;padding:14px 16px 16px;margin-bottom:12px;background:linear-gradient(135deg,rgba(201,168,76,.08),rgba(201,168,76,.04));border-radius:12px;border:1px solid rgba(201,168,76,.25);position:relative}
+.reading-oracle{text-align:center;font-size:15.5px;font-weight:600;color:var(--gold-dark);letter-spacing:1.5px;line-height:1.85;padding:14px 16px 16px;margin-bottom:12px;background:linear-gradient(135deg,rgba(201,168,76,.08),rgba(201,168,76,.04));border-radius:12px;border:1px solid rgba(201,168,76,.25);position:relative;text-indent:0}
 .reading-oracle::before{content:'✦';position:absolute;top:-8px;left:50%;transform:translateX(-50%);background:var(--panel);padding:0 8px;font-size:13px;color:var(--gold);opacity:.8}
 .reading-content{font-size:14.5px;line-height:1.95;color:var(--text)}.reading-content p{margin-bottom:12px;text-indent:2em;line-height:1.95}.reading-content p:last-child{margin-bottom:0}.reading-section-title{font-size:14px;font-weight:700;color:var(--gold-dark);margin:16px 0 6px;letter-spacing:1px}.reading-section-title:first-child{margin-top:0}
 .reading-content.streaming::after{content:'▋';animation:blink .7s infinite;color:var(--gold)}
@@ -559,39 +559,78 @@ function confirmLocation() {
     });
 }
 function getGPS() {
-  if (!navigator.geolocation) { alert('浏览器不支持定位'); return; }
+  if (!navigator.geolocation) {
+    alert('浏览器不支持GPS定位，请手动输入城市');
+    return;
+  }
   document.getElementById('locationBtn').textContent = '📍 定位中...';
+  closeLocationModal();
+  // 先用低精度快速定位，超时后报错
+  var done = false;
+  var timer = setTimeout(function() {
+    if (!done) {
+      done = true;
+      document.getElementById('locationBtn').textContent = '📍 地区';
+      alert('GPS定位超时，请手动点击📍输入城市名称');
+    }
+  }, 12000);
   navigator.geolocation.getCurrentPosition(function(pos) {
+    if (done) return;
+    done = true;
+    clearTimeout(timer);
     var lat = pos.coords.latitude, lon = pos.coords.longitude;
     state.location.lat = lat; state.location.lon = lon;
-    closeLocationModal();
-    fetch('https://nominatim.openstreetmap.org/reverse?lat='+lat+'&lon='+lon+'&format=json', {headers:{'Accept-Language':'zh'}})
+    // 用 open-meteo geocoding 反查城市名（支持中文）
+    fetch('https://geocoding-api.open-meteo.com/v1/reverse?latitude='+lat+'&longitude='+lon+'&language=zh&count=1&format=json')
       .then(function(r){return r.json();})
       .then(function(d){
-        var city = (d.address && (d.address.city||d.address.town||d.address.county||d.address.state)) || (lat.toFixed(2)+','+lon.toFixed(2));
+        var city = (d.results && d.results[0] && d.results[0].name) || (lat.toFixed(2)+','+lon.toFixed(2));
         state.location.city = city;
         document.getElementById('locationBtn').textContent = '📍 ' + city;
         fetchWeatherByCoords(lat, lon);
       }).catch(function(){
-        document.getElementById('locationBtn').textContent = '📍 ' + lat.toFixed(2)+','+lon.toFixed(2);
-        fetchWeatherByCoords(lat, lon);
+        // 备用：nominatim
+        fetch('https://nominatim.openstreetmap.org/reverse?lat='+lat+'&lon='+lon+'&format=json&accept-language=zh')
+          .then(function(r){return r.json();})
+          .then(function(d){
+            var city = (d.address && (d.address.city||d.address.town||d.address.county||d.address.state)) || (lat.toFixed(2)+','+lon.toFixed(2));
+            state.location.city = city;
+            document.getElementById('locationBtn').textContent = '📍 ' + city;
+            fetchWeatherByCoords(lat, lon);
+          }).catch(function(){
+            state.location.city = lat.toFixed(2)+','+lon.toFixed(2);
+            document.getElementById('locationBtn').textContent = '📍 ' + lat.toFixed(2)+','+lon.toFixed(2);
+            fetchWeatherByCoords(lat, lon);
+          });
       });
   }, function(err) {
-    document.getElementById('locationBtn').textContent = '📍 定位失败';
-    alert('定位失败：' + (err.code===1?'请允许位置权限':err.code===2?'位置不可用':'超时，请手动输入'));
-  }, {timeout:10000, enableHighAccuracy:false});
+    if (done) return;
+    done = true;
+    clearTimeout(timer);
+    document.getElementById('locationBtn').textContent = '📍 地区';
+    var msg = err.code===1 ? '请在手机设置中允许浏览器访问位置权限，然后重试'
+            : err.code===2 ? 'GPS信号不可用，请手动输入城市名称'
+            : '定位超时，请手动输入城市名称';
+    alert(msg);
+  }, {timeout:10000, enableHighAccuracy:false, maximumAge:60000});
 }
 var WDESC = {0:'晴天',1:'基本晴朗',2:'局部多云',3:'阴天',45:'有雾',48:'有雾',51:'小毛毛雨',53:'毛毛雨',55:'大毛毛雨',61:'小雨',63:'中雨',65:'大雨',71:'小雪',73:'中雪',75:'大雪',80:'阵雨',81:'中阵雨',82:'强阵雨',95:'雷雨',96:'雷暴',99:'强雷暴'};
 var WICON = {0:'☀️',1:'🌤',2:'⛅',3:'☁️',45:'🌫',48:'🌫',51:'🌦',53:'🌦',55:'🌧',61:'🌧',63:'🌧',65:'🌧',71:'🌨',73:'🌨',75:'❄️',80:'🌦',81:'🌧',82:'⛈',95:'⛈',96:'⛈',99:'⛈'};
 function fetchWeatherByCoords(lat, lon) {
-  fetch('https://api.open-meteo.com/v1/forecast?latitude='+lat+'&longitude='+lon+'&current=temperature_2m,weathercode&timezone=auto')
+  // 使用 open-meteo 获取当前天气（支持风速、湿度）
+  fetch('https://api.open-meteo.com/v1/forecast?latitude='+lat+'&longitude='+lon+'&current=temperature_2m,apparent_temperature,weathercode,relative_humidity_2m&timezone=auto&forecast_days=1')
     .then(function(r){return r.json();})
     .then(function(d){
-      var code = d.current.weathercode, temp = Math.round(d.current.temperature_2m);
+      var cur = d.current;
+      var code = cur.weathercode, temp = Math.round(cur.temperature_2m);
+      var feels = Math.round(cur.apparent_temperature||temp);
       var desc = WDESC[code]||'未知', icon = WICON[code]||'🌡';
-      document.getElementById('weatherDisplay').textContent = icon+' '+desc+' '+temp+'°C';
-      state.weather = desc+' '+temp+'°C';
-    }).catch(function(){ document.getElementById('weatherDisplay').textContent = '🌤 获取失败'; });
+      var weatherStr = desc+' '+temp+'°C'+(feels!==temp?'（体感'+feels+'°C）':'');
+      document.getElementById('weatherDisplay').textContent = icon+' '+weatherStr;
+      state.weather = weatherStr;
+    }).catch(function(){
+      document.getElementById('weatherDisplay').textContent = '🌤 获取失败';
+    });
 }
 function fetchWeatherByCity(city) {
   fetch('https://geocoding-api.open-meteo.com/v1/search?name='+encodeURIComponent(city)+'&count=1&language=zh&format=json')
@@ -604,7 +643,7 @@ function fetchWeatherByCity(city) {
     }).catch(function(){ document.getElementById('weatherDisplay').textContent = '🌤 获取失败'; });
 }
 // Auto IP location
-fetch('http://ip-api.com/json/?lang=zh-CN&fields=city,lat,lon,status')
+fetch('https://ip-api.com/json/?lang=zh-CN&fields=city,lat,lon,status')
   .then(function(r){return r.json();})
   .then(function(d){
     if (d.status==='success' && d.city) {
@@ -1098,7 +1137,12 @@ function callAI(systemPrompt, messages, onChunk, maxTok) {
   }
   return callBuiltinWorker(systemPrompt, messages, onChunk, maxTok)
     .catch(function(e) {
-      if (e.message === 'Failed to fetch' || e.message.indexOf('fetch') >= 0 || e.message.indexOf('network') >= 0) {
+      var msg = e.message || '';
+      // 捕获网络错误（iOS: Load failed / Network request timed out，安卓: Failed to fetch）
+      if (msg === 'Failed to fetch' || msg.indexOf('fetch') >= 0
+          || msg.indexOf('network') >= 0 || msg.indexOf('Network') >= 0
+          || msg.indexOf('Load failed') >= 0 || msg.indexOf('超时') >= 0
+          || msg.indexOf('timed out') >= 0 || msg.indexOf('abort') >= 0) {
         return callDeepSeekDirect(systemPrompt, messages, onChunk, maxTok);
       }
       throw e;
@@ -1150,11 +1194,24 @@ function isChinaMainland(city) {
 
 
 // Worker 通道：走 Gemini（需要外网）
+function fetchWithTimeout(url, options, ms) {
+  var ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+  var tid = ctrl ? setTimeout(function(){ ctrl.abort(); }, ms) : null;
+  var opts = ctrl ? Object.assign({}, options, {signal: ctrl.signal}) : options;
+  return fetch(url, opts).then(function(r) {
+    if (tid) clearTimeout(tid);
+    return r;
+  }).catch(function(e) {
+    if (tid) clearTimeout(tid);
+    if (e.name === 'AbortError') throw new Error('请求超时，请检查网络');
+    throw e;
+  });
+}
 function callBuiltinWorker(systemPrompt, messages, onChunk, maxTok) {
   maxTok = maxTok || 900;
   var headers = { 'Content-Type': 'application/json' };
   if (BUILTIN_ACCESS_SECRET) headers['X-Access-Secret'] = BUILTIN_ACCESS_SECRET;
-  return fetch(BUILTIN_WORKER_URL, {
+  return fetchWithTimeout(BUILTIN_WORKER_URL, {
     method: 'POST',
     headers: headers,
     body: JSON.stringify({
@@ -1164,7 +1221,7 @@ function callBuiltinWorker(systemPrompt, messages, onChunk, maxTok) {
       stream: false,
       messages: [{role:'system', content:systemPrompt}].concat(messages)
     })
-  }).then(function(r) {
+  }, 25000).then(function(r) {
     if (!r.ok) {
       return r.json().catch(function(){return {};}).then(function(err) {
         if (r.status === 401) throw new Error('访问密钥错误');
@@ -1181,7 +1238,7 @@ function callBuiltinWorker(systemPrompt, messages, onChunk, maxTok) {
 // 直连通道：走 DeepSeek 官方 API（国内无需翻墙）
 function callDeepSeekDirect(systemPrompt, messages, onChunk, maxTok) {
   maxTok = maxTok || 900;
-  return fetch('https://api.deepseek.com/v1/chat/completions', {
+  return fetchWithTimeout('https://api.deepseek.com/v1/chat/completions', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -1193,7 +1250,7 @@ function callDeepSeekDirect(systemPrompt, messages, onChunk, maxTok) {
       stream: false,
       messages: [{role:'system', content:systemPrompt}].concat(messages)
     })
-  }).then(function(r) {
+  }, 25000).then(function(r) {
     if (!r.ok) {
       return r.json().catch(function(){return {};}).then(function(err) {
         throw new Error(err.error&&err.error.message ? err.error.message : 'DeepSeek请求失败: '+r.status);
@@ -1287,19 +1344,23 @@ function renderReading(elId, text, el) {
   if (!target) return;
   var html = '';
   var lines = text.split(/\n+/);
+  var inOracle = false;  // 是否处于占卜词段落
   for (var i = 0; i < lines.length; i++) {
     var line = lines[i].trim();
     if (!line) continue;
     if (/^【.+】/.test(line)) {
+      inOracle = false;
       var titleMatch = line.match(/^(【(.+?)】)(.*)$/);
       if (titleMatch) {
         var titleName = titleMatch[2];
         var restText = titleMatch[3].trim();
         if (titleName === '占卜词') {
-          // 占卜词：金色居中，无标题头，内容大字显示
+          inOracle = true;
           if (restText) {
             html += '<div class="reading-oracle">' + restText + '</div>';
+            inOracle = false;
           }
+          // 若 restText 为空，等待下一行内容
         } else {
           html += '<div class="reading-section-title">【' + titleName + '】</div>';
           if (restText) {
@@ -1307,8 +1368,11 @@ function renderReading(elId, text, el) {
           }
         }
       }
+    } else if (inOracle) {
+      // 占卜词内容在下一行的情况
+      html += '<div class="reading-oracle">' + line + '</div>';
+      inOracle = false;
     } else {
-      // 如果前面刚输出了 oracle 且还没有其他段落，跳过空内容
       html += '<p>' + line + '</p>';
     }
   }
