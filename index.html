@@ -1164,19 +1164,28 @@ var DEEPSEEK_DIRECT_KEY = 'sk-59d9efd6ae814702a624ad30a9378f53';
 // 访问门控逻辑
 // ── 纯本地密码验证（无需网络）──
 function simpleHash(str) {
-  // FNV-1a 变体 + 反向位移混淆，纯同步 JS，兼容所有浏览器
-  var h = 0x811c9dc5;
+  // 使用 Math.imul 进行精确32位整数乘法，避免 JS 浮点精度丢失
+  var imul = Math.imul || function(a, b) {
+    // polyfill for very old browsers
+    var ah = (a >>> 16) & 0xFFFF, al = a & 0xFFFF;
+    var bh = (b >>> 16) & 0xFFFF, bl = b & 0xFFFF;
+    return ((al * bl) + (((ah * bl + al * bh) << 16) >>> 0) | 0) >>> 0;
+  };
+  var h = 0x811c9dc5 >>> 0;
   for (var i = 0; i < str.length; i++) {
-    h ^= str.charCodeAt(i);
-    h = (h * 0x01000193) & 0xFFFFFFFF;
+    h = (h ^ str.charCodeAt(i)) >>> 0;
+    h = imul(h, 0x01000193) >>> 0;
   }
   var h2 = 0;
   for (var j = str.length - 1; j >= 0; j--) {
-    h2 = ((h2 << 5) + h2 + str.charCodeAt(j)) & 0xFFFFFFFF;
+    h2 = (((h2 << 5) >>> 0) + h2 + str.charCodeAt(j)) >>> 0;
   }
-  var r = h ^ h2;
-  var r2 = h2 ^ 0xdeadbeef;
-  return (r >>> 0).toString(16).padStart(8,'0') + (r2 >>> 0).toString(16).padStart(8,'0');
+  var r  = (h ^ h2) >>> 0;
+  var r2 = (h2 ^ 0xdeadbeef) >>> 0;
+  // 手动补零，不用 padStart（兼容旧安卓 WebView）
+  var s1 = r.toString(16);  while (s1.length < 8) s1 = '0' + s1;
+  var s2 = r2.toString(16); while (s2.length < 8) s2 = '0' + s2;
+  return s1 + s2;
 }
 
 function checkAccess() {
