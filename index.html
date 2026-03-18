@@ -288,7 +288,7 @@ body{font-family:'Noto Serif SC',serif;background:var(--bg);min-height:100vh;col
           <div class="spread-dot" onclick="selectMulti(6,this)">6</div>
           <div class="spread-dot" onclick="selectMulti(7,this)">7</div>
         </div>
-        <div class="spread-notes">备注：<br>1：时间流：过去、现在、未来 &nbsp; 2：身心灵：身体、心灵、精神<br>3：发展、阻碍、建议 &nbsp; 4：发展、想法、建议 &nbsp; 5：核心、发展、建议<br>6：工作、稳定、改变 &nbsp; 7：是与否牌阵（三正为是，一逆二正有变数，一正二逆/三逆为否）</div>
+        <div class="spread-notes">备注：<br>1：时间流：过去、现在、未来<br>2：身心灵：身体、心灵、精神<br>3：发展、阻碍、建议<br>4：发展、想法、建议<br>5：核心、发展、建议<br>6：工作、稳定、改变<br>7：是与否牌阵（三正为是，一逆二正有变数，一正二逆/三逆为否）</div>
       </div>
       <div class="panel">
         <div style="font-size:14px;color:var(--text-light);margin-bottom:7px;font-weight:600">请输入问题：</div>
@@ -1057,8 +1057,8 @@ if (sessionStorage.getItem('tarot_access') === '1') {
 // 先尝试 Worker（Gemini），失败则直连 DeepSeek
 
 // ── PRE-ANALYSIS HELPERS ─────────────────────────────────────
-var SINGLE_SYS = '你是专业塔罗占卜师，精通韦特塔罗。纯文字输出，禁用星号等符号。回答分四个部分：\n【占卜词】用一句富有哲理的寓言式短句（20字以内）概括本次牌意的核心启示，语言优美深邃\n【牌面解读】牌义象征与正逆位含义（150字内）\n【环境解读】结合时间地点天气（周运势逐日简述，150字内）\n【综合建议】针对问题的分析与建议（150字内）';
-var MULTI_SYS = '你是专业塔罗占卜师，精通韦特塔罗多牌阵解读。纯文字输出，禁用星号等符号。回答分四个部分：\n【占卜词】用一句富有哲理的寓言式短句（20字以内）概括本次牌阵的核心启示，语言优美深邃\n【牌面解读】逐张分析位置含义与正逆位差异（150字内）\n【环境解读】结合时间地点天气分析（150字内）\n【综合建议】综合分析与理性建议（150字内）';
+var SINGLE_SYS = '你是专业塔罗占卜师，精通韦特塔罗。纯文字输出，禁用星号等符号。回答分四个部分：\n【占卜词】用一句富有哲理的喻句概括本次牌意核心，无需工整对称，用意象引发思考，句末不加句号，例如：干涸的泉眼，需先承认荒芜才能重遇清流\n【牌面解读】牌义象征与正逆位含义（150字内）\n【环境解读】结合时间地点天气（周运势逐日简述，150字内）\n【综合建议】针对问题的分析与建议（150字内）';
+var MULTI_SYS = '你是专业塔罗占卜师，精通韦特塔罗多牌阵解读。纯文字输出，禁用星号等符号。回答分四个部分：\n【占卜词】用一句富有哲理的喻句概括本次牌阵核心，无需工整对称，用意象引发思考，句末不加句号，例如：干涸的泉眼，需先承认荒芜才能重遇清流\n【牌面解读】逐张分析位置含义与正逆位差异（150字内）\n【环境解读】结合时间地点天气分析（150字内）\n【综合建议】综合分析与理性建议（150字内）';
 
 function buildSingleCtx(question) {
   var cardNames = state.drawnSingle.map(function(c){return c.name+'（'+(c.reversed?'逆位':'正位')+'）';}).join('、');
