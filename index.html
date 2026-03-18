@@ -92,7 +92,7 @@ body{font-family:'Noto Serif SC',serif;background:var(--bg);min-height:100vh;col
 .card-name-tag.shown,.card-reversed-tag.shown{opacity:1}
 .card-slot{display:flex;flex-direction:column;align-items:center}
 .card-label{font-size:11px;text-align:center;color:var(--text-light);margin-top:4px;font-weight:500}
-.multi-card-area{display:flex;flex-wrap:wrap;justify-content:center;gap:14px;padding:8px}
+.multi-card-area{display:flex;flex-wrap:nowrap;justify-content:center;gap:10px;padding:10px 8px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;align-items:flex-start}.multi-card-area::-webkit-scrollbar{display:none}
 .card-placeholder{width:140px;height:200px;background:#d8dce0;border-radius:13px;display:flex;align-items:center;justify-content:center;color:#aaa;font-size:13px;border:2px dashed #c0c4c8}
 .reading-panel{background:var(--panel);border:1.5px solid var(--border);border-radius:var(--radius);padding:16px;min-height:110px;box-shadow:var(--shadow);backdrop-filter:blur(8px);margin-bottom:28px}
 .reading-label{font-size:12px;color:var(--text-light);margin-bottom:8px}
@@ -707,23 +707,55 @@ function drawSingleCards() {
     area.className = 'card-area';
     area.appendChild(renderCard(state.drawnSingle[0], 0));
   } else {
-    area.className = ''; area.style.padding = '5px';
-    var topRow = document.createElement('div');
-    topRow.style.cssText = 'display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:9px';
-    var botRow = document.createElement('div');
-    botRow.style.cssText = 'display:grid;grid-template-columns:repeat(4,1fr);gap:9px';
+    // 周运势：上1中3下3布局，每行牌同等大小
+    area.className = '';
+    area.style.cssText = 'padding:6px 4px';
     var days = ['周一','周二','周三','周四','周五','周六','周日'];
-    state.drawnSingle.forEach(function(card, i) {
-      var slot = document.createElement('div'); slot.className = 'card-slot';
-      var c = renderCard(card, i*0.1); c.style.width = '100%';
-      var lbl = document.createElement('div'); lbl.className = 'card-label'; lbl.textContent = days[i];
-      slot.appendChild(c); slot.appendChild(lbl);
-      (i < 3 ? topRow : botRow).appendChild(slot);
-    });
-    area.appendChild(topRow); area.appendChild(botRow);
+    // 统一卡牌宽度：三列时每列约30%
+    var cardW = 'calc((100% - 24px) / 3)';
+
+    // 行容器
+    function makeRow(justify) {
+      var row = document.createElement('div');
+      row.style.cssText = 'display:flex;justify-content:'+(justify||'center')+';gap:8px;margin-bottom:10px';
+      return row;
+    }
+    function makeSlot(card, idx, width) {
+      var slot = document.createElement('div');
+      slot.className = 'card-slot';
+      slot.style.cssText = 'width:'+width+';display:flex;flex-direction:column;align-items:center';
+      var c = renderCard(card, idx*0.18);
+      c.style.width = '100%';
+      var dayLbl = document.createElement('div');
+      dayLbl.className = 'card-label';
+      dayLbl.style.cssText = 'font-size:11px;font-weight:600;color:var(--text-light);margin-top:4px';
+      dayLbl.textContent = days[idx];
+      slot.appendChild(c);
+      slot.appendChild(dayLbl);
+      return slot;
+    }
+
+    // 第一行：周一（1张，居中）
+    var row1 = makeRow('center');
+    row1.appendChild(makeSlot(state.drawnSingle[0], 0, cardW));
+
+    // 第二行：周二、周三、周四（3张）
+    var row2 = makeRow('center');
+    for (var i = 1; i <= 3; i++) {
+      row2.appendChild(makeSlot(state.drawnSingle[i], i, cardW));
+    }
+
+    // 第三行：周五、周六、周日（3张）
+    var row3 = makeRow('center');
+    for (var j = 4; j <= 6; j++) {
+      row3.appendChild(makeSlot(state.drawnSingle[j], j, cardW));
+    }
+
+    area.appendChild(row1);
+    area.appendChild(row2);
+    area.appendChild(row3);
   }
   document.getElementById('singleReadBtn').disabled = false;
-  // Begin pre-analysis while user views cards
   startPreAnalysis('single');
 }
 function showErr(elId, mode, e) {
@@ -794,12 +826,22 @@ function drawMultiCards() {
   area.innerHTML = '';
   document.getElementById('multiCardArea').style.display = 'block';
   var labels = getMultiLabels(multiType);
+  // 依次展现：先显示区域，然后每张牌间隔出现
   state.drawnMulti.forEach(function(card, i) {
-    var slot = document.createElement('div'); slot.className = 'card-slot';
-    var c = renderCard(card, i*0.12); c.style.width = '150px';
-    var lbl = document.createElement('div'); lbl.className = 'card-label'; lbl.textContent = labels[i]||('牌'+(i+1));
-    slot.appendChild(c); slot.appendChild(lbl);
+    var slot = document.createElement('div');
+    slot.className = 'card-slot';
+    slot.style.cssText = 'flex:0 0 auto;width:30%;max-width:140px;min-width:90px;display:flex;flex-direction:column;align-items:center;opacity:0;transform:translateY(16px);transition:opacity .4s ease,transform .4s ease';
+    var c = renderCard(card, i*0.55);  // 翻牌延迟错开
+    c.style.width = '100%';
+    var lbl = document.createElement('div');
+    lbl.className = 'card-label';
+    lbl.style.cssText = 'font-size:12px;margin-top:6px;font-weight:600;color:var(--gold-dark);letter-spacing:.5px';
+    lbl.textContent = labels[i]||('牌'+(i+1));
+    slot.appendChild(c);
+    slot.appendChild(lbl);
     area.appendChild(slot);
+    // 依次淡入：每张牌延迟 i*300ms
+    setTimeout(function(s){ s.style.opacity='1'; s.style.transform='none'; }, i*300 + 100, slot);
   });
   document.getElementById('multiReadBtn').disabled = false;
   startPreAnalysis('multi');
