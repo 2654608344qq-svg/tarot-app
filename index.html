@@ -59,7 +59,7 @@ body{font-family:'Noto Serif SC',serif;background:var(--bg);min-height:100vh;col
 .spread-dot{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;border:2px solid transparent;box-shadow:0 2px 8px rgba(0,0,0,.08)}
 .spread-dot:nth-child(1){background:#f2b8c6}.spread-dot:nth-child(2){background:#f2e8b8}.spread-dot:nth-child(3){background:#b8f2d4}.spread-dot:nth-child(4){background:#b8d4f2}.spread-dot:nth-child(5){background:#d4b8f2}.spread-dot:nth-child(6){background:#c8d8e8}.spread-dot:nth-child(7){background:#f2cdb8}
 .spread-dot.selected{border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,168,76,.35);transform:scale(1.1)}
-.spread-notes{font-size:12px;color:var(--text-light);line-height:1.9}
+.spread-notes{font-size:12px;color:var(--text-light);line-height:1.9;text-align:center}
 .question-input{width:100%;background:#fffef0;border:1.5px solid #e8d890;border-radius:12px;padding:11px 14px;font-family:'Noto Serif SC',serif;font-size:15px;color:var(--text);outline:none;resize:none;min-height:50px;transition:border .2s}
 .question-input:focus{border-color:var(--gold)}
 .question-hint{font-size:11.5px;color:var(--text-light);margin-top:4px}
@@ -96,6 +96,8 @@ body{font-family:'Noto Serif SC',serif;background:var(--bg);min-height:100vh;col
 .card-placeholder{width:140px;height:200px;background:#d8dce0;border-radius:13px;display:flex;align-items:center;justify-content:center;color:#aaa;font-size:13px;border:2px dashed #c0c4c8}
 .reading-panel{background:var(--panel);border:1.5px solid var(--border);border-radius:var(--radius);padding:16px;min-height:110px;box-shadow:var(--shadow);backdrop-filter:blur(8px);margin-bottom:28px}
 .reading-label{font-size:12px;color:var(--text-light);margin-bottom:8px}
+.reading-oracle{text-align:center;font-size:16px;font-weight:600;color:var(--gold-dark);letter-spacing:2px;line-height:1.8;padding:14px 16px 16px;margin-bottom:12px;background:linear-gradient(135deg,rgba(201,168,76,.08),rgba(201,168,76,.04));border-radius:12px;border:1px solid rgba(201,168,76,.25);position:relative}
+.reading-oracle::before{content:'✦';position:absolute;top:-8px;left:50%;transform:translateX(-50%);background:var(--panel);padding:0 8px;font-size:13px;color:var(--gold);opacity:.8}
 .reading-content{font-size:14.5px;line-height:1.95;color:var(--text)}.reading-content p{margin-bottom:12px;text-indent:2em;line-height:1.95}.reading-content p:last-child{margin-bottom:0}.reading-section-title{font-size:14px;font-weight:700;color:var(--gold-dark);margin:16px 0 6px;letter-spacing:1px}.reading-section-title:first-child{margin-top:0}
 .reading-content.streaming::after{content:'▋';animation:blink .7s infinite;color:var(--gold)}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
@@ -223,8 +225,8 @@ body{font-family:'Noto Serif SC',serif;background:var(--bg);min-height:100vh;col
 
     <div id="singleMode">
       <div class="panel">
-        <div style="font-size:14px;color:var(--text-light);margin-bottom:8px"><span style="color:var(--text);font-weight:600;margin-right:6px">请选择：</span></div>
-        <div class="spread-dots" id="singleDots">
+        <div style="font-size:14px;color:var(--text-light);margin-bottom:8px;text-align:center"><span style="color:var(--text);font-weight:600;margin-right:6px">请选择：</span></div>
+        <div class="spread-dots" id="singleDots" style="justify-content:center">
           <div class="spread-dot selected" onclick="selectSingle(1,this)">1</div>
           <div class="spread-dot" onclick="selectSingle(2,this)">2</div>
           <div class="spread-dot" onclick="selectSingle(3,this)">3</div>
@@ -276,8 +278,8 @@ body{font-family:'Noto Serif SC',serif;background:var(--bg);min-height:100vh;col
 
     <div id="multiMode" style="display:none">
       <div class="panel">
-        <div style="font-size:14px;color:var(--text-light);margin-bottom:8px"><span style="color:var(--text);font-weight:600;margin-right:6px">请选择：</span></div>
-        <div class="spread-dots" id="multiDots">
+        <div style="font-size:14px;color:var(--text-light);margin-bottom:8px;text-align:center"><span style="color:var(--text);font-weight:600;margin-right:6px">请选择：</span></div>
+        <div class="spread-dots" id="multiDots" style="justify-content:center">
           <div class="spread-dot selected" onclick="selectMulti(1,this)">1</div>
           <div class="spread-dot" onclick="selectMulti(2,this)">2</div>
           <div class="spread-dot" onclick="selectMulti(3,this)">3</div>
@@ -1055,8 +1057,8 @@ if (sessionStorage.getItem('tarot_access') === '1') {
 // 先尝试 Worker（Gemini），失败则直连 DeepSeek
 
 // ── PRE-ANALYSIS HELPERS ─────────────────────────────────────
-var SINGLE_SYS = '你是专业塔罗占卜师，精通韦特塔罗。纯文字输出，禁用符号。三段作答，每段150字内：\n【牌面解读】牌义象征与正逆位含义\n【环境解读】结合时间地点天气（周运势逐日简述）\n【综合建议】针对问题的分析与建议';
-var MULTI_SYS = '你是专业塔罗占卜师，精通韦特塔罗多牌阵解读。纯文字输出，禁用符号。三段作答，每段150字内：\n【牌面解读】逐张分析位置含义与正逆位差异\n【环境解读】结合时间地点天气分析\n【综合建议】综合分析与理性建议';
+var SINGLE_SYS = '你是专业塔罗占卜师，精通韦特塔罗。纯文字输出，禁用星号等符号。回答分四个部分：\n【占卜词】用一句富有哲理的寓言式短句（20字以内）概括本次牌意的核心启示，语言优美深邃\n【牌面解读】牌义象征与正逆位含义（150字内）\n【环境解读】结合时间地点天气（周运势逐日简述，150字内）\n【综合建议】针对问题的分析与建议（150字内）';
+var MULTI_SYS = '你是专业塔罗占卜师，精通韦特塔罗多牌阵解读。纯文字输出，禁用星号等符号。回答分四个部分：\n【占卜词】用一句富有哲理的寓言式短句（20字以内）概括本次牌阵的核心启示，语言优美深邃\n【牌面解读】逐张分析位置含义与正逆位差异（150字内）\n【环境解读】结合时间地点天气分析（150字内）\n【综合建议】综合分析与理性建议（150字内）';
 
 function buildSingleCtx(question) {
   var cardNames = state.drawnSingle.map(function(c){return c.name+'（'+(c.reversed?'逆位':'正位')+'）';}).join('、');
@@ -1283,23 +1285,30 @@ function stopSpinnerHints(mode) {
 function renderReading(elId, text, el) {
   var target = el || document.getElementById(elId);
   if (!target) return;
-  // 将文本按【xxx】标题和空行分段
   var html = '';
   var lines = text.split(/\n+/);
   for (var i = 0; i < lines.length; i++) {
     var line = lines[i].trim();
     if (!line) continue;
-    // 检测【标题】格式
     if (/^【.+】/.test(line)) {
-      // 提取标题和后续内容
-      var titleMatch = line.match(/^(【.+?】)(.*)$/);
+      var titleMatch = line.match(/^(【(.+?)】)(.*)$/);
       if (titleMatch) {
-        html += '<div class="reading-section-title">' + titleMatch[1] + '</div>';
-        if (titleMatch[2].trim()) {
-          html += '<p>' + titleMatch[2].trim() + '</p>';
+        var titleName = titleMatch[2];
+        var restText = titleMatch[3].trim();
+        if (titleName === '占卜词') {
+          // 占卜词：金色居中，无标题头，内容大字显示
+          if (restText) {
+            html += '<div class="reading-oracle">' + restText + '</div>';
+          }
+        } else {
+          html += '<div class="reading-section-title">【' + titleName + '】</div>';
+          if (restText) {
+            html += '<p>' + restText + '</p>';
+          }
         }
       }
     } else {
+      // 如果前面刚输出了 oracle 且还没有其他段落，跳过空内容
       html += '<p>' + line + '</p>';
     }
   }
