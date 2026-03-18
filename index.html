@@ -97,6 +97,8 @@ body{font-family:'Noto Serif SC',serif;background:var(--bg);min-height:100vh;col
 .reading-panel{background:var(--panel);border:1.5px solid var(--border);border-radius:var(--radius);padding:16px;min-height:110px;box-shadow:var(--shadow);backdrop-filter:blur(8px);margin-bottom:28px}
 .reading-label{font-size:12px;color:var(--text-light);margin-bottom:8px}
 .reading-oracle{text-align:center;font-size:15.5px;font-weight:600;color:var(--gold-dark);letter-spacing:1.5px;line-height:1.85;padding:14px 16px 16px;margin-bottom:12px;background:linear-gradient(135deg,rgba(201,168,76,.08),rgba(201,168,76,.04));border-radius:12px;border:1px solid rgba(201,168,76,.25);position:relative;text-indent:0}
+.reading-oracle-multi{display:flex;flex-direction:column;gap:6px;align-items:center}
+.oracle-line{display:block;text-align:center}
 .reading-oracle::before{content:'✦';position:absolute;top:-8px;left:50%;transform:translateX(-50%);background:var(--panel);padding:0 8px;font-size:13px;color:var(--gold);opacity:.8}
 .reading-content{font-size:14.5px;line-height:1.95;color:var(--text)}.reading-content p{margin-bottom:12px;text-indent:2em;line-height:1.95}.reading-content p:last-child{margin-bottom:0}.reading-section-title{font-size:14px;font-weight:700;color:var(--gold-dark);margin:16px 0 6px;letter-spacing:1px}.reading-section-title:first-child{margin-top:0}
 .reading-content.streaming::after{content:'▋';animation:blink .7s infinite;color:var(--gold)}
@@ -615,21 +617,59 @@ function getGPS() {
   }, {timeout:10000, enableHighAccuracy:false, maximumAge:60000});
 }
 var WDESC = {0:'晴天',1:'基本晴朗',2:'局部多云',3:'阴天',45:'有雾',48:'有雾',51:'小毛毛雨',53:'毛毛雨',55:'大毛毛雨',61:'小雨',63:'中雨',65:'大雨',71:'小雪',73:'中雪',75:'大雪',80:'阵雨',81:'中阵雨',82:'强阵雨',95:'雷雨',96:'雷暴',99:'强雷暴'};
+// wttr.in 天气码映射（与 WMO 兼容，补充中文说明）
+var WTTR_CODE = {113:'晴天',116:'局部多云',119:'多云',122:'阴天',143:'有雾',176:'阵雨',179:'阵雪',182:'冻雨',185:'冰粒',200:'雷阵雨',227:'大雪',230:'暴雪',248:'有雾',260:'有雾',263:'小阵雨',266:'小雨',281:'冻毛毛雨',284:'冻毛毛雨',293:'小雨',296:'小雨',299:'中雨',302:'中雨',305:'大雨',308:'大雨',311:'冻雨',314:'冻雨',317:'冻雨',320:'小雪',323:'小雪',326:'中雪',329:'中雪',332:'大雪',335:'大雪',338:'大雪',350:'冰粒',353:'小阵雨',356:'中阵雨',359:'大阵雨',362:'冰粒阵雨',365:'冰粒阵雨',368:'小阵雪',371:'中阵雪',374:'冰粒阵雨',377:'冰粒阵雨',386:'雷阵雨',389:'强雷阵雨',392:'雷阵雪',395:'强雷阵雪'};
+var WTTR_ICON = {113:'☀️',116:'⛅',119:'☁️',122:'☁️',143:'🌫',176:'🌦',179:'🌨',200:'⛈',227:'🌨',230:'❄️',248:'🌫',263:'🌦',266:'🌧',293:'🌧',296:'🌧',299:'🌧',302:'🌧',305:'🌧',308:'🌧',320:'🌨',323:'🌨',326:'🌨',329:'🌨',332:'❄️',335:'❄️',353:'🌦',356:'🌧',359:'🌧',368:'🌨',371:'🌨',386:'⛈',389:'⛈'};
 var WICON = {0:'☀️',1:'🌤',2:'⛅',3:'☁️',45:'🌫',48:'🌫',51:'🌦',53:'🌦',55:'🌧',61:'🌧',63:'🌧',65:'🌧',71:'🌨',73:'🌨',75:'❄️',80:'🌦',81:'🌧',82:'⛈',95:'⛈',96:'⛈',99:'⛈'};
 function fetchWeatherByCoords(lat, lon) {
-  // 使用 open-meteo 获取当前天气（支持风速、湿度）
-  fetch('https://api.open-meteo.com/v1/forecast?latitude='+lat+'&longitude='+lon+'&current=temperature_2m,apparent_temperature,weathercode,relative_humidity_2m&timezone=auto&forecast_days=1')
+  var isChina = isChinaMainland(state.location.city);
+  if (isChina) {
+    // 大陆城市：使用 wttr.in（自动选用中国气象站数据，与中央气象台同源）
+    fetchWeatherWttr(state.location.city || (lat+','+lon));
+  } else {
+    // 海外：使用 open-meteo（与 Apple Weather 同级精度）
+    fetch('https://api.open-meteo.com/v1/forecast?latitude='+lat+'&longitude='+lon+'&current=temperature_2m,weathercode&timezone=auto&forecast_days=1')
+      .then(function(r){return r.json();})
+      .then(function(d){
+        var cur = d.current;
+        var code = cur.weathercode, temp = Math.round(cur.temperature_2m);
+        var desc = WDESC[code]||'未知', icon = WICON[code]||'🌡';
+        var weatherStr = desc+' '+temp+'°C';
+        document.getElementById('weatherDisplay').textContent = icon+' '+weatherStr;
+        state.weather = weatherStr;
+      }).catch(function(){
+        // 备用 wttr.in
+        fetchWeatherWttr(lat+','+lon);
+      });
+  }
+}
+function fetchWeatherWttr(cityOrCoord) {
+  // wttr.in 使用最近气象观测站数据，中国境内自动使用中国气象局观测数据
+  fetch('https://wttr.in/'+encodeURIComponent(cityOrCoord)+'?format=j1&lang=zh')
     .then(function(r){return r.json();})
     .then(function(d){
-      var cur = d.current;
-      var code = cur.weathercode, temp = Math.round(cur.temperature_2m);
-      var feels = Math.round(cur.apparent_temperature||temp);
-      var desc = WDESC[code]||'未知', icon = WICON[code]||'🌡';
-      var weatherStr = desc+' '+temp+'°C'+(feels!==temp?'（体感'+feels+'°C）':'');
+      var cur = d.current_condition && d.current_condition[0];
+      if (!cur) throw new Error('no data');
+      var temp = parseInt(cur.temp_C);
+      var code = parseInt(cur.weatherCode);
+      var desc = WTTR_CODE[code] || (cur.lang_zh && cur.lang_zh[0] && cur.lang_zh[0].value) || '未知';
+      var icon = WTTR_ICON[code] || '🌡';
+      var weatherStr = desc+' '+temp+'°C';
       document.getElementById('weatherDisplay').textContent = icon+' '+weatherStr;
       state.weather = weatherStr;
     }).catch(function(){
-      document.getElementById('weatherDisplay').textContent = '🌤 获取失败';
+      // 最终备用：open-meteo
+      fetch('https://api.open-meteo.com/v1/forecast?latitude='+state.location.lat+'&longitude='+state.location.lon+'&current=temperature_2m,weathercode&timezone=auto&forecast_days=1')
+        .then(function(r){return r.json();})
+        .then(function(d){
+          var cur = d.current;
+          var code = cur.weathercode, temp = Math.round(cur.temperature_2m);
+          var desc = WDESC[code]||'未知', icon = WICON[code]||'🌡';
+          document.getElementById('weatherDisplay').textContent = icon+' '+desc+' '+temp+'°C';
+          state.weather = desc+' '+temp+'°C';
+        }).catch(function(){
+          document.getElementById('weatherDisplay').textContent = '🌤 获取失败';
+        });
     });
 }
 function fetchWeatherByCity(city) {
@@ -637,10 +677,14 @@ function fetchWeatherByCity(city) {
     .then(function(r){return r.json();})
     .then(function(d){
       if (d.results && d.results[0]) {
-        state.location.lat = d.results[0].latitude; state.location.lon = d.results[0].longitude;
+        state.location.lat = d.results[0].latitude;
+        state.location.lon = d.results[0].longitude;
         fetchWeatherByCoords(d.results[0].latitude, d.results[0].longitude);
-      } else document.getElementById('weatherDisplay').textContent = '🌤 城市未找到';
-    }).catch(function(){ document.getElementById('weatherDisplay').textContent = '🌤 获取失败'; });
+      } else {
+        // geocoding 找不到时直接用 wttr.in 城市名查询
+        fetchWeatherWttr(city);
+      }
+    }).catch(function(){ fetchWeatherWttr(city); });
 }
 // Auto IP location
 fetch('https://ip-api.com/json/?lang=zh-CN&fields=city,lat,lon,status')
@@ -1339,6 +1383,16 @@ function stopSpinnerHints(mode) {
 }
 
 // 分段渲染解读内容（支持【标题】段落格式和首行缩进）
+// 将占卜词按逗号分行，每句居中显示
+function formatOracle(text) {
+  // 用中文逗号或英文逗号分割，过滤空串
+  var parts = text.split(/[，,]/).map(function(s){ return s.trim(); }).filter(Boolean);
+  if (parts.length <= 1) {
+    return '<div class="reading-oracle">' + text + '</div>';
+  }
+  var inner = parts.map(function(p){ return '<span class="oracle-line">' + p + '</span>'; }).join('');
+  return '<div class="reading-oracle reading-oracle-multi">' + inner + '</div>';
+}
 function renderReading(elId, text, el) {
   var target = el || document.getElementById(elId);
   if (!target) return;
@@ -1370,7 +1424,7 @@ function renderReading(elId, text, el) {
       }
     } else if (inOracle) {
       // 占卜词内容在下一行的情况
-      html += '<div class="reading-oracle">' + line + '</div>';
+      html += formatOracle(line);
       inOracle = false;
     } else {
       html += '<p>' + line + '</p>';
