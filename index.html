@@ -69,10 +69,10 @@ body{font-family:'Noto Serif SC',serif;background:var(--bg);min-height:100vh;col
 .btn-read{background:linear-gradient(135deg,#d0e8d0,#88b888);color:#1a4a1a}
 .btn:disabled{opacity:.5;cursor:not-allowed;transform:none!important}
 .card-area{display:flex;justify-content:center;align-items:center;min-height:190px;padding:10px}
-.tarot-card{width:130px;border-radius:13px;overflow:hidden;box-shadow:0 8px 30px rgba(0,0,0,.2);transition:all .3s;cursor:pointer;background:#2a1a4e;animation:cardReveal .5s ease backwards;position:relative}
-.tarot-card:hover{transform:translateY(-6px) scale(1.03)}
-@keyframes cardReveal{from{opacity:0;transform:translateY(20px) rotate(-3deg)}to{opacity:1;transform:none}}
-.card-back{width:100%;aspect-ratio:3/5;background:linear-gradient(160deg,#1c0f2e 0%,#2d1a4a 40%,#1a0f35 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.tarot-card{width:130px;aspect-ratio:3/5;border-radius:13px;box-shadow:0 8px 30px rgba(0,0,0,.2);cursor:pointer;position:relative;perspective:900px;animation:cardReveal .5s ease backwards;transition:transform .25s}
+.tarot-card:hover{transform:translateY(-5px) scale(1.02)}
+@keyframes cardReveal{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}to{opacity:1;transform:none}}
+.card-back{width:100%;height:100%;background:linear-gradient(160deg,#1c0f2e 0%,#2d1a4a 40%,#1a0f35 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden}
 .card-back::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 30%,rgba(201,168,76,.18) 0%,transparent 65%),radial-gradient(ellipse at 50% 90%,rgba(180,120,200,.12) 0%,transparent 50%)}
 .card-back::after{content:'';position:absolute;inset:6px;border:1px solid rgba(201,168,76,.4);border-radius:6px;box-shadow:inset 0 0 12px rgba(201,168,76,.08)}
 .card-mucha-deco{position:absolute;top:0;left:0;right:0;bottom:0;pointer-events:none}
@@ -81,8 +81,15 @@ body{font-family:'Noto Serif SC',serif;background:var(--bg);min-height:100vh;col
 .card-mucha-circle{position:absolute;top:50%;left:50%;transform:translate(-50%,-60%);width:54px;height:54px;border-radius:50%;border:1px solid rgba(201,168,76,.35);box-shadow:0 0 0 4px rgba(201,168,76,.08),0 0 16px rgba(201,168,76,.12)}
 .card-mucha-dots{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);display:flex;gap:4px}
 .card-mucha-dot{width:3px;height:3px;border-radius:50%;background:rgba(201,168,76,.45)}
-.card-name-tag{position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.65);color:#f0d890;font-size:10px;text-align:center;padding:4px;font-family:'Noto Serif SC',serif}
-.card-reversed-tag{position:absolute;top:5px;right:5px;background:rgba(180,60,60,.85);color:#fff;font-size:9px;border-radius:5px;padding:2px 4px}
+.card-name-tag{position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.75);color:#f0d890;font-size:10.5px;text-align:center;padding:5px 4px;font-family:'Noto Serif SC',serif;opacity:0;transition:opacity .5s .1s;border-radius:0 0 13px 13px;z-index:20}
+.card-reversed-tag{position:absolute;top:6px;left:6px;background:rgba(180,60,60,.85);color:#fff;font-size:9px;border-radius:5px;padding:2px 5px;opacity:0;transition:opacity .5s;z-index:20}
+.card-inner{width:100%;height:100%;position:relative;transform-style:preserve-3d;transition:transform .72s cubic-bezier(.4,0,.2,1);border-radius:13px}
+.card-inner.flipped{transform:rotateY(180deg)}
+.card-face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:13px;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.card-back-face{z-index:2}
+.card-front-face{transform:rotateY(180deg)}
+.card-front-face.face-reversed{transform:rotateY(180deg) rotateZ(180deg)}
+.card-name-tag.shown,.card-reversed-tag.shown{opacity:1}
 .card-slot{display:flex;flex-direction:column;align-items:center}
 .card-label{font-size:11px;text-align:center;color:var(--text-light);margin-top:4px;font-weight:500}
 .multi-card-area{display:flex;flex-wrap:wrap;justify-content:center;gap:14px;padding:8px}
@@ -423,7 +430,8 @@ var state = {
   drawnSingle: [], drawnMulti: [],
   singleHistory: [], multiHistory: [],
   singleReadingText: '', multiReadingText: '',
-  singleChatLog: [], multiChatLog: []
+  singleChatLog: [], multiChatLog: [],
+  singlePreAnalysis: null, multiPreAnalysis: null
 };
  
 // ── TIME ─────────────────────────────────────────────────────
@@ -441,12 +449,30 @@ updateTime(); setInterval(updateTime, 30000);
 function openLocationModal() { document.getElementById('locationModal').classList.add('open'); }
 function closeLocationModal() { document.getElementById('locationModal').classList.remove('open'); }
 function confirmLocation() {
-  var city = document.getElementById('locationInput').value.trim();
-  if (!city) return;
-  state.location.city = city;
-  document.getElementById('locationBtn').textContent = '📍 ' + city;
-  closeLocationModal();
-  fetchWeatherByCity(city);
+  var input = document.getElementById('locationInput').value.trim();
+  if (!input) return;
+  document.getElementById('locationBtn').textContent = '📍 搜索中...';
+  fetch('https://geocoding-api.open-meteo.com/v1/search?name='+encodeURIComponent(input)+'&count=3&language=zh&format=json')
+    .then(function(r){return r.json();})
+    .then(function(d){
+      if (d.results && d.results[0]) {
+        var r = d.results[0];
+        var cityName = r.name || input;
+        state.location.city = cityName;
+        state.location.lat = r.latitude;
+        state.location.lon = r.longitude;
+        document.getElementById('locationBtn').textContent = '📍 '+cityName;
+        closeLocationModal();
+        fetchWeatherByCoords(r.latitude, r.longitude);
+      } else {
+        document.getElementById('locationBtn').textContent = '📍 地区';
+        alert('未能找到"'+input+'"，请尝试输入省份名或更大的城市名称');
+      }
+    }).catch(function(){
+      state.location.city = input;
+      document.getElementById('locationBtn').textContent = '📍 '+input;
+      closeLocationModal();
+    });
 }
 function getGPS() {
   if (!navigator.geolocation) { alert('浏览器不支持定位'); return; }
@@ -518,25 +544,52 @@ function renderCard(card, delay) {
   var div = document.createElement('div');
   div.className = 'tarot-card';
   div.style.animationDelay = (delay||0) + 's';
-  if (card.reversed) div.style.transform = 'rotate(180deg)';
   var sym = getSymbol(card);
   var muchaColor = getMuchaColor(card);
-  div.innerHTML = '<div style="position:relative">'
-    + '<div class="card-back" style="background:'+muchaColor.bg+'">'
-    + '<div class="card-mucha-deco">'
-    + '<div class="card-mucha-top"></div>'
-    + '<div class="card-mucha-bot"></div>'
-    + '<div class="card-mucha-circle"></div>'
-    + '<div class="card-mucha-dots"><div class="card-mucha-dot"></div><div class="card-mucha-dot"></div><div class="card-mucha-dot"></div><div class="card-mucha-dot"></div><div class="card-mucha-dot"></div></div>'
-    + '</div>'
-    + '<div style="position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding-top:10px">'
-    + '<div style="font-size:28px;filter:drop-shadow(0 0 8px '+muchaColor.glow+');margin-bottom:4px">'+sym+'</div>'
-    + '<div style="font-size:9.5px;color:rgba(201,168,76,.8);letter-spacing:1px;text-align:center;padding:0 8px;font-family:serif">'+card.name+'</div>'
-    + '</div>'
-    + '</div>'
-    + (card.reversed ? '<div class="card-reversed-tag">逆位</div>' : '')
-    + '<div class="card-name-tag">'+(card.reversed?'逆位·':'正位·')+card.name+'</div>'
-    + '</div>';
+  var inner = document.createElement('div');
+  inner.className = 'card-inner';
+  // ── Back face (uniform, does not reveal card) ──
+  var bk = document.createElement('div');
+  bk.className = 'card-face card-back-face';
+  bk.innerHTML = '<div class="card-back" style="width:100%;height:100%;background:linear-gradient(160deg,#1c0f2e 0%,#2d1a4a 40%,#1a0f35 100%)">'
+    + '<div class="card-mucha-deco"><div class="card-mucha-top"></div><div class="card-mucha-bot"></div><div class="card-mucha-circle"></div>'
+    + '<div class="card-mucha-dots"><div class="card-mucha-dot"></div><div class="card-mucha-dot"></div><div class="card-mucha-dot"></div><div class="card-mucha-dot"></div><div class="card-mucha-dot"></div></div></div>'
+    + '<div style="position:relative;z-index:1;text-align:center">'
+    + '<div style="font-size:24px;color:rgba(201,168,76,.45)">✦</div>'
+    + '<div style="font-size:8px;color:rgba(201,168,76,.3);letter-spacing:4px;margin-top:5px">TAROT</div>'
+    + '</div></div>';
+  // ── Front face (card-specific, reversed = upside-down) ──
+  var ft = document.createElement('div');
+  ft.className = 'card-face card-front-face' + (card.reversed ? ' face-reversed' : '');
+  ft.style.background = muchaColor.bg;
+  ft.innerHTML = '<div style="width:100%;height:100%;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px">'
+    + '<div class="card-mucha-deco"><div class="card-mucha-top"></div><div class="card-mucha-bot"></div><div class="card-mucha-circle"></div></div>'
+    + '<div style="position:relative;z-index:1;text-align:center">'
+    + '<div style="font-size:38px;filter:drop-shadow(0 0 10px '+muchaColor.glow+');margin-bottom:6px">'+sym+'</div>'
+    + '<div style="width:36px;height:1px;background:rgba(201,168,76,.45);margin:0 auto 5px"></div>'
+    + '<div style="font-size:10px;color:rgba(201,168,76,.85);letter-spacing:1.5px;font-family:serif">'+card.name+'</div>'
+    + '</div></div>';
+  inner.appendChild(bk); inner.appendChild(ft);
+  div.appendChild(inner);
+  // ── Name tag (fades in after flip) ──
+  var nt = document.createElement('div'); nt.className = 'card-name-tag';
+  nt.textContent = (card.reversed ? '逆位 · ' : '正位 · ') + card.name;
+  div.appendChild(nt);
+  // ── Reversed badge ──
+  if (card.reversed) {
+    var rt = document.createElement('div'); rt.className = 'card-reversed-tag'; rt.textContent = '逆';
+    div.appendChild(rt);
+  }
+  // ── Flip after delay ──
+  var flipAt = Math.round((delay||0)*1000) + 750;
+  setTimeout(function() {
+    inner.classList.add('flipped');
+    setTimeout(function() {
+      nt.classList.add('shown');
+      var r = div.querySelector('.card-reversed-tag');
+      if (r) r.classList.add('shown');
+    }, 720);
+  }, flipAt);
   return div;
 }
 function getMuchaColor(card) {
@@ -561,7 +614,7 @@ function selectSingle(n, el) {
   resetSingle();
 }
 function resetSingle() {
-  state.drawnSingle=[]; state.singleHistory=[]; state.singleReadingText=''; state.singleChatLog=[];
+  state.drawnSingle=[]; state.singleHistory=[]; state.singleReadingText=''; state.singleChatLog=[]; state.singlePreAnalysis=null;
   document.getElementById('singleCardArea').style.display = 'none';
   document.getElementById('singleReadingText').textContent = '';
   document.getElementById('singleReadBtn').disabled = true;
@@ -596,36 +649,47 @@ function drawSingleCards() {
     area.appendChild(topRow); area.appendChild(botRow);
   }
   document.getElementById('singleReadBtn').disabled = false;
+  // Begin pre-analysis while user views cards
+  startPreAnalysis('single');
+}
+function showErr(elId, mode, e) {
+  document.getElementById(elId).textContent = '解读失败：' + e.message;
+  document.getElementById(elId).classList.remove('streaming');
+  document.getElementById(mode+'Spinner').style.display = 'none'; stopSpinnerText(mode);
+  document.getElementById(mode+'ReadBtn').disabled = false;
 }
 function readSingle() {
   var question = document.getElementById('singleQuestion').value.trim();
-  var cardNames = state.drawnSingle.map(function(c){return c.name+'（'+(c.reversed?'逆位':'正位')+'）';}).join('、');
-  var typeLabels = ['','今日运势','本月运势','个人状态/状况','具体事情发展阶段','任何事的起因（原因）','本周运势'];
-  var now = new Date();
-  var days = ['日','一','二','三','四','五','六'];
-  var ctx = '时间：'+now.getFullYear()+'年'+(now.getMonth()+1)+'月'+now.getDate()+'日 星期'+days[now.getDay()]+'\n地点：'+state.location.city+'\n天气：'+state.weather+'\n牌阵：单张牌阵 - '+(typeLabels[singleType]||'')+'\n问题：'+(question||'（无特定问题）')+'\n抽到的牌：'+cardNames;
-  var sys = '你是专业塔罗占卜师，精通韦特塔罗。纯文字输出，禁用符号。三段作答，每段150字内：\n【牌面解读】牌义象征与正逆位含义\n【环境解读】结合时间地点天气（周运势逐日简述）\n【综合建议】针对问题的分析与建议'
-  document.getElementById('singleReadingText').textContent = '';
+  document.getElementById('singleReadingText').innerHTML = '';
   document.getElementById('singleReadingText').classList.add('streaming');
   document.getElementById('singleReadBtn').disabled = true;
   document.getElementById('singleSpinner').style.display = 'flex'; startSpinnerText('single');
-  state.singleHistory = [{role:'user', content:'请根据以下信息进行塔罗牌解读：\n'+ctx}];
-  callAI(sys, state.singleHistory, function(partial) {
-    renderReading('singleReadingText', partial);
-  }).then(function(result) {
-    state.singleHistory.push({role:'assistant', content:result});
+  var pre = state.singlePreAnalysis;
+  var usesPre = pre && pre.q === question && pre.promise;
+  if (usesPre) state.singlePreAnalysis = null;
+  var ctx = usesPre ? pre.ctx : buildSingleCtx(question);
+  var msgs = usesPre ? pre.msgs : [{role:'user',content:'请根据以下信息进行塔罗牌解读：\n'+ctx}];
+  var resultPromise = usesPre
+    ? pre.promise
+    : callAI(SINGLE_SYS, msgs, function(p){renderReading('singleReadingText',p);}, 900);
+  function onDone(result) {
+    state.singleHistory = msgs.concat([{role:'assistant',content:result}]);
     state.singleReadingText = result;
     renderReading('singleReadingText', result);
     document.getElementById('singleReadingText').classList.remove('streaming');
-    document.getElementById('singleSpinner').style.display = 'none'; stopSpinnerText('single'); stopSpinnerText('single'); stopSpinnerText('single'); stopSpinnerMessages('single'); stopSpinnerText('single'); stopSpinnerText('single'); stopSpinnerText('single');
+    document.getElementById('singleSpinner').style.display = 'none'; stopSpinnerText('single');
     document.getElementById('singleReadBtn').disabled = false;
     document.getElementById('singleSaveBtnWrap').style.display = 'block';
-  }).catch(function(e) {
-    document.getElementById('singleReadingText').textContent = '解读失败：' + e.message;
-    document.getElementById('singleReadingText').classList.remove('streaming');
-    document.getElementById('singleSpinner').style.display = 'none'; stopSpinnerText('single'); stopSpinnerText('single'); stopSpinnerText('single'); stopSpinnerMessages('single'); stopSpinnerText('single'); stopSpinnerText('single'); stopSpinnerText('single');
-    document.getElementById('singleReadBtn').disabled = false;
-  });
+  }
+  function onFail(e) {
+    if (usesPre) {
+      var fm = [{role:'user',content:'请根据以下信息进行塔罗牌解读：\n'+buildSingleCtx(question)}];
+      callAI(SINGLE_SYS, fm, function(p){renderReading('singleReadingText',p);}, 900)
+        .then(function(r){ usesPre=false; msgs=fm; onDone(r); })
+        .catch(function(e2){ showErr('singleReadingText','single',e2); });
+    } else { showErr('singleReadingText','single',e); }
+  }
+  resultPromise.then(onDone).catch(onFail);
 }
  
 // ── MULTI MODE ───────────────────────────────────────────────
@@ -637,7 +701,7 @@ function selectMulti(n, el) {
   resetMulti();
 }
 function resetMulti() {
-  state.drawnMulti=[]; state.multiHistory=[]; state.multiReadingText=''; state.multiChatLog=[];
+  state.drawnMulti=[]; state.multiHistory=[]; state.multiReadingText=''; state.multiChatLog=[]; state.multiPreAnalysis=null;
   document.getElementById('multiCardArea').style.display = 'none';
   document.getElementById('multiReadingText').textContent = '';
   document.getElementById('multiReadBtn').disabled = true;
@@ -664,41 +728,40 @@ function drawMultiCards() {
     area.appendChild(slot);
   });
   document.getElementById('multiReadBtn').disabled = false;
+  startPreAnalysis('multi');
 }
 function readMulti() {
   var question = document.getElementById('multiQuestion').value.trim();
-  var typeNames = {1:'时间流',2:'身心灵',3:'发展·阻碍·建议',4:'发展·想法·建议',5:'核心·发展·建议',6:'工作·稳定·改变',7:'是与否牌阵'};
-  var labels = getMultiLabels(multiType);
-  var cardDesc = state.drawnMulti.map(function(c,i){return labels[i]+'：'+c.name+'（'+(c.reversed?'逆位':'正位')+'）';}).join('\n');
-  var extra = '';
-  if (multiType === 7) {
-    var rev = state.drawnMulti.filter(function(c){return c.reversed;}).length;
-    extra = '\n判断：'+(rev===0?'是（三正）':rev===1?'有变数（一逆二正）':rev===2?'否（一正二逆）':'否（三逆）');
-  }
-  var now = new Date(); var days = ['日','一','二','三','四','五','六'];
-  var ctx = '时间：'+now.getFullYear()+'年'+(now.getMonth()+1)+'月'+now.getDate()+'日 星期'+days[now.getDay()]+'\n地点：'+state.location.city+'\n天气：'+state.weather+'\n牌阵：万用牌阵 - '+(typeNames[multiType]||'')+'\n问题：'+(question||'（无特定问题）')+'\n抽到的牌：\n'+cardDesc+extra;
-  var sys = '你是专业塔罗占卜师，精通韦特塔罗多牌阵解读。纯文字输出，禁用符号。三段作答，每段150字内：\n【牌面解读】逐张分析位置含义与正逆位差异\n【环境解读】结合时间地点天气分析\n【综合建议】综合分析与理性建议';
-  document.getElementById('multiReadingText').textContent = '';
+  document.getElementById('multiReadingText').innerHTML = '';
   document.getElementById('multiReadingText').classList.add('streaming');
   document.getElementById('multiReadBtn').disabled = true;
   document.getElementById('multiSpinner').style.display = 'flex'; startSpinnerText('multi');
-  state.multiHistory = [{role:'user', content:'请根据以下信息进行塔罗牌解读：\n'+ctx}];
-  callAI(sys, state.multiHistory, function(partial) {
-    renderReading('multiReadingText', partial);
-  }).then(function(result) {
-    state.multiHistory.push({role:'assistant', content:result});
+  var pre = state.multiPreAnalysis;
+  var usesPre = pre && pre.q === question && pre.promise;
+  if (usesPre) state.multiPreAnalysis = null;
+  var ctx = usesPre ? pre.ctx : buildMultiCtx(question);
+  var msgs = usesPre ? pre.msgs : [{role:'user',content:'请根据以下信息进行塔罗牌解读：\n'+ctx}];
+  var resultPromise = usesPre
+    ? pre.promise
+    : callAI(MULTI_SYS, msgs, function(p){renderReading('multiReadingText',p);}, 900);
+  function onDone(result) {
+    state.multiHistory = msgs.concat([{role:'assistant',content:result}]);
     state.multiReadingText = result;
     renderReading('multiReadingText', result);
     document.getElementById('multiReadingText').classList.remove('streaming');
-    document.getElementById('multiSpinner').style.display = 'none'; stopSpinnerText('multi'); stopSpinnerText('multi'); stopSpinnerText('multi'); stopSpinnerMessages('multi'); stopSpinnerText('multi'); stopSpinnerText('multi'); stopSpinnerText('multi');
+    document.getElementById('multiSpinner').style.display = 'none'; stopSpinnerText('multi');
     document.getElementById('multiReadBtn').disabled = false;
     document.getElementById('multiSaveBtnWrap').style.display = 'block';
-  }).catch(function(e) {
-    document.getElementById('multiReadingText').textContent = '解读失败：' + e.message;
-    document.getElementById('multiReadingText').classList.remove('streaming');
-    document.getElementById('multiSpinner').style.display = 'none'; stopSpinnerText('multi'); stopSpinnerText('multi'); stopSpinnerText('multi'); stopSpinnerMessages('multi'); stopSpinnerText('multi'); stopSpinnerText('multi'); stopSpinnerText('multi');
-    document.getElementById('multiReadBtn').disabled = false;
-  });
+  }
+  function onFail(e) {
+    if (usesPre) {
+      var fm = [{role:'user',content:'请根据以下信息进行塔罗牌解读：\n'+buildMultiCtx(question)}];
+      callAI(MULTI_SYS, fm, function(p){renderReading('multiReadingText',p);}, 900)
+        .then(function(r){ usesPre=false; msgs=fm; onDone(r); })
+        .catch(function(e2){ showErr('multiReadingText','multi',e2); });
+    } else { showErr('multiReadingText','multi',e); }
+  }
+  resultPromise.then(onDone).catch(onFail);
 }
  
 // ── MODE SWITCH ──────────────────────────────────────────────
@@ -874,6 +937,42 @@ if (sessionStorage.getItem('tarot_access') === '1') {
 }
  
 // 先尝试 Worker（Gemini），失败则直连 DeepSeek
+ 
+// ── PRE-ANALYSIS HELPERS ─────────────────────────────────────
+var SINGLE_SYS = '你是专业塔罗占卜师，精通韦特塔罗。纯文字输出，禁用符号。三段作答，每段150字内：\n【牌面解读】牌义象征与正逆位含义\n【环境解读】结合时间地点天气（周运势逐日简述）\n【综合建议】针对问题的分析与建议';
+var MULTI_SYS = '你是专业塔罗占卜师，精通韦特塔罗多牌阵解读。纯文字输出，禁用符号。三段作答，每段150字内：\n【牌面解读】逐张分析位置含义与正逆位差异\n【环境解读】结合时间地点天气分析\n【综合建议】综合分析与理性建议';
+ 
+function buildSingleCtx(question) {
+  var cardNames = state.drawnSingle.map(function(c){return c.name+'（'+(c.reversed?'逆位':'正位')+'）';}).join('、');
+  var typeLabels = ['','今日运势','本月运势','个人状态/状况','具体事情发展阶段','任何事的起因（原因）','本周运势'];
+  var now = new Date(); var days = ['日','一','二','三','四','五','六'];
+  return '时间：'+now.getFullYear()+'年'+(now.getMonth()+1)+'月'+now.getDate()+'日 星期'+days[now.getDay()]
+    +'\n地点：'+state.location.city+'\n天气：'+state.weather
+    +'\n牌阵：单张牌阵 - '+(typeLabels[singleType]||'')
+    +'\n问题：'+(question||'（无特定问题）')+'\n抽到的牌：'+cardNames;
+}
+function buildMultiCtx(question) {
+  var typeNames={1:'时间流',2:'身心灵',3:'发展·阻碍·建议',4:'发展·想法·建议',5:'核心·发展·建议',6:'工作·稳定·改变',7:'是与否牌阵'};
+  var labels = getMultiLabels(multiType);
+  var cardDesc = state.drawnMulti.map(function(c,i){return labels[i]+'：'+c.name+'（'+(c.reversed?'逆位':'正位')+'）';}).join('\n');
+  var extra = '';
+  if (multiType===7) { var rev=state.drawnMulti.filter(function(c){return c.reversed;}).length; extra='\n判断：'+(rev===0?'是（三正）':rev===1?'有变数（一逆二正）':rev===2?'否（一正二逆）':'否（三逆）'); }
+  var now = new Date(); var days = ['日','一','二','三','四','五','六'];
+  return '时间：'+now.getFullYear()+'年'+(now.getMonth()+1)+'月'+now.getDate()+'日 星期'+days[now.getDay()]
+    +'\n地点：'+state.location.city+'\n天气：'+state.weather
+    +'\n牌阵：万用牌阵 - '+(typeNames[multiType]||'')
+    +'\n问题：'+(question||'（无特定问题）')+'\n抽到的牌：\n'+cardDesc+extra;
+}
+function startPreAnalysis(mode) {
+  var drawn = mode==='single' ? state.drawnSingle : state.drawnMulti;
+  if (!drawn.length) return;
+  var q = (document.getElementById(mode+'Question')||{}).value||'';
+  q = q.trim();
+  var ctx = mode==='single' ? buildSingleCtx(q) : buildMultiCtx(q);
+  var sys = mode==='single' ? SINGLE_SYS : MULTI_SYS;
+  var msgs = [{role:'user',content:'请根据以下信息进行塔罗牌解读：\n'+ctx}];
+  state[mode+'PreAnalysis'] = {q:q, ctx:ctx, msgs:msgs, promise:callAI(sys, msgs, null, 900)};
+}
 function callAI(systemPrompt, messages, onChunk, maxTok) {
   maxTok = maxTok || 900;
   if (!BUILTIN_WORKER_URL) {
