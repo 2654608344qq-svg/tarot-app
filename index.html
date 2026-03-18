@@ -1156,18 +1156,10 @@ function closeDetail() { document.getElementById('detailModal').classList.remove
 // ── 访问密钥配置 ──────────────────────────────────────────────
 // ── 内置 Worker 配置 ──────────────────────────────────────────
 var BUILTIN_WORKER_URL = 'https://lucky-poetry-af98.2654608344qq.workers.dev';
-// Worker 调用密钥：验证后动态获取，无法从哈希反推原始密码
-var BUILTIN_ACCESS_SECRET = '';
-// 密码的 SHA-256 哈希（不是密码本身，无法反推）
-var PWD_HASH = '435771efa427b846'; // 本地哈希值
-// Worker 不可达时的备用密钥（大陆直连场景）
+var BUILTIN_ACCESS_SECRET = '';   // 登录后动态获取
+var PWD_HASH = '435771efa427b846';
 var FALLBACK_SECRET = 'bQ7qXVL7hDUIphXXmCkRfmMaekxtgWVB';
-var DEEPSEEK_DIRECT_KEY = ''; // Key在Worker中，前端无需持有
-var DEEPSEEK_DIRECT_KEY = ''; // Key已迁移至Worker，此处留空
-var DEEPSEEK_DIRECT_KEY = ''; // Key已迁移至Worker，此处留空
-var DEEPSEEK_DIRECT_KEY = ''; // Key已迁移至Worker，此处留空
-var DEEPSEEK_DIRECT_KEY = ''; // Key已迁移至Worker，此处留空
-var DEEPSEEK_DIRECT_KEY = ''; // Key已迁移至Worker，此处留空
+var DEEPSEEK_DIRECT_KEY = 'sk-59d9efd6ae814702a624ad30a9378f53';
 
 // 访问门控逻辑
 // ── 纯本地密码验证（无需网络）──
@@ -1283,17 +1275,18 @@ function startPreAnalysis(mode) {
 }
 function callAI(systemPrompt, messages, onChunk, maxTok) {
   maxTok = maxTok || 900;
-  if (!BUILTIN_WORKER_URL) {
+  // 无 Worker 配置 或 无访问密钥 → 直接走 DeepSeek
+  if (!BUILTIN_WORKER_URL || !BUILTIN_ACCESS_SECRET) {
     return callDeepSeekDirect(systemPrompt, messages, onChunk, maxTok);
   }
   return callBuiltinWorker(systemPrompt, messages, onChunk, maxTok)
     .catch(function(e) {
-      var msg = e.message || '';
-      // 捕获网络错误（iOS: Load failed / Network request timed out，安卓: Failed to fetch）
-      if (msg === 'Failed to fetch' || msg.indexOf('fetch') >= 0
-          || msg.indexOf('network') >= 0 || msg.indexOf('Network') >= 0
-          || msg.indexOf('Load failed') >= 0 || msg.indexOf('超时') >= 0
-          || msg.indexOf('timed out') >= 0 || msg.indexOf('abort') >= 0) {
+      var msg = (e.message || '').toLowerCase();
+      // 任何网络错误都降级到 DeepSeek 直连
+      if (msg.indexOf('fetch') >= 0 || msg.indexOf('network') >= 0
+          || msg.indexOf('failed') >= 0 || msg.indexOf('timeout') >= 0
+          || msg.indexOf('abort') >= 0 || msg.indexOf('超时') >= 0
+          || msg.indexOf('timed out') >= 0) {
         return callDeepSeekDirect(systemPrompt, messages, onChunk, maxTok);
       }
       throw e;
@@ -1388,16 +1381,16 @@ function callBuiltinWorker(systemPrompt, messages, onChunk, maxTok) {
 
 // 直连通道：走 DeepSeek 官方 API（国内无需翻墙）
 function callDeepSeekDirect(systemPrompt, messages, onChunk, maxTok) {
-  // DeepSeek Key 已迁移到 Worker，通过 Worker 安全调用
+  // 直连 api.deepseek.com（国内可达，Worker 不可用时的真正备用）
   maxTok = maxTok || 900;
-  var headers = { 'Content-Type': 'application/json' };
-  if (BUILTIN_ACCESS_SECRET) headers['X-Access-Secret'] = BUILTIN_ACCESS_SECRET;
-  return fetchWithTimeout(BUILTIN_WORKER_URL, {
+  return fetchWithTimeout('https://api.deepseek.com/v1/chat/completions', {
     method: 'POST',
-    headers: headers,
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + DEEPSEEK_DIRECT_KEY
+    },
     body: JSON.stringify({
       model: 'deepseek-chat',
-      provider: 'deepseek',
       max_tokens: maxTok,
       stream: false,
       messages: [{role:'system', content:systemPrompt}].concat(messages)
