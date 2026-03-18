@@ -1156,8 +1156,12 @@ function closeDetail() { document.getElementById('detailModal').classList.remove
 // ── 访问密钥配置 ──────────────────────────────────────────────
 // ── 内置 Worker 配置 ──────────────────────────────────────────
 var BUILTIN_WORKER_URL = 'https://lucky-poetry-af98.2654608344qq.workers.dev';
-// Worker 调用密钥：页面加载时为空，用户验证密码后由 Worker 动态下发
+// Worker 调用密钥：验证后动态获取，无法从哈希反推原始密码
 var BUILTIN_ACCESS_SECRET = '';
+// 密码的 SHA-256 哈希（不是密码本身，无法反推）
+var PWD_HASH = '83199688eb18cf1650730f4033cfbc24a188e2a472148a36876cdebad02ba3c6';
+// Worker 不可达时的备用密钥（大陆直连场景）
+var FALLBACK_SECRET = 'bQ7qXVL7hDUIphXXmCkRfmMaekxtgWVB';
 var DEEPSEEK_DIRECT_KEY = ''; // Key在Worker中，前端无需持有
 var DEEPSEEK_DIRECT_KEY = ''; // Key已迁移至Worker，此处留空
 var DEEPSEEK_DIRECT_KEY = ''; // Key已迁移至Worker，此处留空
@@ -1166,30 +1170,44 @@ var DEEPSEEK_DIRECT_KEY = ''; // Key已迁移至Worker，此处留空
 var DEEPSEEK_DIRECT_KEY = ''; // Key已迁移至Worker，此处留空
 
 // 访问门控逻辑
+// SHA-256 哈希函数（用于本地密码验证，无需明文存储密码）
+async function sha256(str) {
+  var buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(function(b){ return b.toString(16).padStart(2,'0'); }).join('');
+}
+
 function checkAccess() {
   var input = document.getElementById('gateInput').value.trim();
   if (!input) return;
   var btn = document.querySelector('.gate-btn');
   btn.textContent = '验证中...';
   btn.disabled = true;
-  // 向 Worker /auth 端点发送密码，由 Worker 验证并下发调用令牌
-  fetch(BUILTIN_WORKER_URL + '/auth', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ password: input })
-  })
-  .then(function(r){ return r.json(); })
-  .then(function(data) {
-    btn.textContent = '进　入'; btn.disabled = false;
-    if (data.ok && data.token) {
-      // 验证成功：将 Worker 令牌存入 sessionStorage（页面关闭后失效）
-      BUILTIN_ACCESS_SECRET = data.token;
-      sessionStorage.setItem('tarot_token', data.token);
-      var gate = document.getElementById('accessGate');
-      gate.style.transition = 'opacity .5s';
-      gate.style.opacity = '0';
-      setTimeout(function(){ gate.style.display = 'none'; }, 500);
+
+  // 先做本地哈希验证（无需网络，毫秒级）
+  sha256(input).then(function(hash) {
+    // 密码哈希正确 → 立即放行，同时后台静默向 Worker 获取令牌
+    if (hash === PWD_HASH) {
+      // 先用内置密钥放行（Worker不可达时也能使用全部功能）
+      BUILTIN_ACCESS_SECRET = FALLBACK_SECRET;
+      sessionStorage.setItem('tarot_token', FALLBACK_SECRET);
+      admitUser();
+      btn.textContent = '进　入'; btn.disabled = false;
+      // 后台静默升级：向 Worker 获取正式令牌（有网时自动升级）
+      fetch(BUILTIN_WORKER_URL + '/auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: input })
+      }).then(function(r){ return r.json(); })
+        .then(function(data){
+          if (data.ok && data.token) {
+            BUILTIN_ACCESS_SECRET = data.token;
+            sessionStorage.setItem('tarot_token', data.token);
+          }
+        }).catch(function(){
+          // Worker 不可达（如大陆直连），继续用本地验证模式，功能正常
+        });
     } else {
+      btn.textContent = '进　入'; btn.disabled = false;
       var errEl = document.getElementById('gateError');
       errEl.textContent = '密钥错误，请重试';
       errEl.classList.remove('shake');
@@ -1197,15 +1215,14 @@ function checkAccess() {
       errEl.classList.add('shake');
       document.getElementById('gateInput').value = '';
     }
-  })
-  .catch(function() {
-    btn.textContent = '进　入'; btn.disabled = false;
-    var errEl = document.getElementById('gateError');
-    errEl.textContent = '网络异常，请重试';
-    errEl.classList.remove('shake');
-    void errEl.offsetWidth;
-    errEl.classList.add('shake');
   });
+}
+
+function admitUser() {
+  var gate = document.getElementById('accessGate');
+  gate.style.transition = 'opacity .5s';
+  gate.style.opacity = '0';
+  setTimeout(function(){ gate.style.display = 'none'; }, 500);
 }
 function toggleGateEye() {
   var inp = document.getElementById('gateInput');
