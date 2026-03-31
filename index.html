@@ -1291,11 +1291,13 @@ function callAI(systemPrompt, messages, onChunk, maxTok) {
   return callBuiltinWorker(systemPrompt, messages, onChunk, maxTok)
     .catch(function(e) {
       var msg = (e.message || '').toLowerCase();
-      // 任何网络错误都降级到 DeepSeek 直连
+      // 网络错误 或 模型被禁/不可用 → 降级到 DeepSeek 直连
       if (msg.indexOf('fetch') >= 0 || msg.indexOf('network') >= 0
           || msg.indexOf('failed') >= 0 || msg.indexOf('timeout') >= 0
           || msg.indexOf('abort') >= 0 || msg.indexOf('超时') >= 0
-          || msg.indexOf('timed out') >= 0) {
+          || msg.indexOf('timed out') >= 0 || msg.indexOf('banned') >= 0
+          || msg.indexOf('unavailable') >= 0 || msg.indexOf('invalid') >= 0
+          || msg.indexOf('unauthorized') >= 0) {
         return callDeepSeekDirect(systemPrompt, messages, onChunk, maxTok);
       }
       throw e;
