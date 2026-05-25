@@ -374,16 +374,7 @@ body{font-family:'Noto Serif SC',serif;background:var(--bg);min-height:100vh;col
 
 <script>
 // ── CONFIG ──────────────────────────────────────────────────
-// 手动选择的模型偏好：'auto'=自动判断地区, 'deepseek'=强制DeepSeek, 'gemini'=强制Gemini
-var manualModel = localStorage.getItem('t_manual_model') || 'auto';
-
-function updateModelCards(model) {
-  var isDeepseek = model !== 'gemini';
-  document.getElementById('modelCardDeepseek').classList.toggle('selected', isDeepseek);
-  document.getElementById('modelCardGemini').classList.toggle('selected', !isDeepseek);
-  document.getElementById('checkDeepseek').textContent = isDeepseek ? '✅' : '';
-  document.getElementById('checkGemini').textContent = !isDeepseek ? '✅' : '';
-}
+// 始终使用 DeepSeek 官方 API
 
 function toggleTutorial(type) {
   var el = document.getElementById(type + 'Tutorial');
@@ -1245,11 +1236,11 @@ function toggleGateEye() {
   }
 })();
 
-// 先尝试 Worker（Gemini），失败则直连 DeepSeek
+// ── AI 调用入口（始终直连 DeepSeek）─────────────────────────
 
 // ── PRE-ANALYSIS HELPERS ─────────────────────────────────────
-var SINGLE_SYS = '你是专业塔罗占卜师，精通韦特塔罗。纯文字输出，禁用星号等符号。回答分四个部分：\n【占卜词】用一句富有哲理的喻句概括本次牌意核心，无需工整对称，用意象引发思考，句末不加句号，例如：干涸的泉眼，需先承认荒芜才能重遇清流\n【牌面解读】牌义象征与正逆位含义（150字内）\n【环境解读】结合时间地点天气（周运势逐日简述，150字内）\n【综合建议】针对问题的分析与建议（150字内）';
-var MULTI_SYS = '你是专业塔罗占卜师，精通韦特塔罗多牌阵解读。纯文字输出，禁用星号等符号。回答分四个部分：\n【占卜词】用一句富有哲理的喻句概括本次牌阵核心，无需工整对称，用意象引发思考，句末不加句号，例如：干涸的泉眼，需先承认荒芜才能重遇清流\n【牌面解读】逐张分析位置含义与正逆位差异（150字内）\n【环境解读】结合时间地点天气分析（150字内）\n【综合建议】综合分析与理性建议（150字内）';
+var SINGLE_SYS = '你是专业塔罗占卜师，精通韦特塔罗。请严格按照以下格式输出，禁用星号"*"及markdown符号，只用纯文字和【】标题。\n\n你必须依次输出以下四个部分，每部分前加【标题】，不得省略任何部分：\n\n【占卜词】\n用一句有意象感的哲理喻句概括本次牌意核心，15-25字，句末不加句号。例如：干涸的泉眼，需先承认荒芜才能重遇清流\n\n【牌面解读】\n分析该牌的象征含义及当前正/逆位的具体含义，结合问题展开，100-150字。\n\n【环境解读】\n结合用户当前的时间、地点、天气信息进行关联解读，如为本周运势则逐日简述，100-150字。\n\n【综合建议】\n针对用户的具体问题给出有实质性的分析与可操作建议，100-150字。\n\n注意：严格按顺序输出四个部分，每部分内容充实，语气温和而有智慧，用中文。';
+var MULTI_SYS = '你是专业塔罗占卜师，精通韦特塔罗多牌阵解读。请严格按照以下格式输出，禁用星号"*"及markdown符号，只用纯文字和【】标题。\n\n你必须依次输出以下四个部分，每部分前加【标题】，不得省略任何部分：\n\n【占卜词】\n用一句有意象感的哲理喻句概括本次牌阵核心，15-25字，句末不加句号。例如：干涸的泉眼，需先承认荒芜才能重遇清流\n\n【牌面解读】\n逐张分析每张牌在该位置的含义，结合正/逆位展开解读，各位置牌意如何相互呼应，100-150字。\n\n【环境解读】\n结合用户当前的时间、地点、天气信息进行关联解读，分析当前时机与外部环境对问题的影响，100-150字。\n\n【综合建议】\n综合全部牌面给出整体判断，针对用户问题给出清晰的分析与可行建议，100-150字。\n\n注意：严格按顺序输出四个部分，每部分内容充实，语气温和而有智慧，用中文。';
 
 function buildSingleCtx(question) {
   var cardNames = state.drawnSingle.map(function(c){return c.name+'（'+(c.reversed?'逆位':'正位')+'）';}).join('、');
@@ -1284,24 +1275,8 @@ function startPreAnalysis(mode) {
 }
 function callAI(systemPrompt, messages, onChunk, maxTok) {
   maxTok = maxTok || 900;
-  // 无 Worker 配置 或 无访问密钥 → 直接走 DeepSeek
-  if (!BUILTIN_WORKER_URL || !BUILTIN_ACCESS_SECRET) {
-    return callDeepSeekDirect(systemPrompt, messages, onChunk, maxTok);
-  }
-  return callBuiltinWorker(systemPrompt, messages, onChunk, maxTok)
-    .catch(function(e) {
-      var msg = (e.message || '').toLowerCase();
-      // 网络错误 或 模型被禁/不可用 → 降级到 DeepSeek 直连
-      if (msg.indexOf('fetch') >= 0 || msg.indexOf('network') >= 0
-          || msg.indexOf('failed') >= 0 || msg.indexOf('timeout') >= 0
-          || msg.indexOf('abort') >= 0 || msg.indexOf('超时') >= 0
-          || msg.indexOf('timed out') >= 0 || msg.indexOf('banned') >= 0
-          || msg.indexOf('unavailable') >= 0 || msg.indexOf('invalid') >= 0
-          || msg.indexOf('unauthorized') >= 0) {
-        return callDeepSeekDirect(systemPrompt, messages, onChunk, maxTok);
-      }
-      throw e;
-    });
+  // 始终使用 DeepSeek 官方 API，无需地区判断
+  return callDeepSeekDirect(systemPrompt, messages, onChunk, maxTok);
 }
 
 // ── 大陆城市/省份关键词列表 ──────────────────────────────────
@@ -1348,7 +1323,6 @@ function isChinaMainland(city) {
 
 
 
-// Worker 通道：走 Gemini（需要外网）
 function fetchWithTimeout(url, options, ms) {
   var ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
   var tid = ctrl ? setTimeout(function(){ ctrl.abort(); }, ms) : null;
@@ -1362,37 +1336,9 @@ function fetchWithTimeout(url, options, ms) {
     throw e;
   });
 }
-function callBuiltinWorker(systemPrompt, messages, onChunk, maxTok) {
-  maxTok = maxTok || 900;
-  var headers = { 'Content-Type': 'application/json' };
-  if (BUILTIN_ACCESS_SECRET) headers['X-Access-Secret'] = BUILTIN_ACCESS_SECRET;
-  return fetchWithTimeout(BUILTIN_WORKER_URL, {
-    method: 'POST',
-    headers: headers,
-    body: JSON.stringify({
-      model: 'google/gemini-2.0-flash-001',
-      provider: 'gemini',
-      max_tokens: maxTok,
-      stream: false,
-      messages: [{role:'system', content:systemPrompt}].concat(messages)
-    })
-  }, 25000).then(function(r) {
-    if (!r.ok) {
-      return r.json().catch(function(){return {};}).then(function(err) {
-        if (r.status === 401) throw new Error('访问密钥错误');
-        throw new Error(err.error&&err.error.message ? err.error.message : '服务请求失败: '+r.status);
-      });
-    }
-    return r.json();
-  }).then(function(data) {
-    if (data.error) throw new Error(data.error.message||'请求失败');
-    return applyTypewriter(data.choices&&data.choices[0]&&data.choices[0].message&&data.choices[0].message.content||'', onChunk);
-  });
-}
-
-// 直连通道：走 DeepSeek 官方 API（国内无需翻墙）
+// 直连通道：走 DeepSeek 官方 API（国内外均可直达）
 function callDeepSeekDirect(systemPrompt, messages, onChunk, maxTok) {
-  // 直连 api.deepseek.com（国内可达，Worker 不可用时的真正备用）
+  // 直连 api.deepseek.com（国内外均可直达）
   maxTok = maxTok || 900;
   return fetchWithTimeout('https://api.deepseek.com/v1/chat/completions', {
     method: 'POST',
@@ -1405,12 +1351,13 @@ function callDeepSeekDirect(systemPrompt, messages, onChunk, maxTok) {
       })(_EK, FALLBACK_SECRET.substring(0,16))
     },
     body: JSON.stringify({
-      model: 'deepseek-chat',
+      model: 'deepseek-v3-0324',
       max_tokens: maxTok,
+      temperature: 0.9,
       stream: false,
       messages: [{role:'system', content:systemPrompt}].concat(messages)
     })
-  }, 25000).then(function(r) {
+  }, 30000).then(function(r) {
     if (!r.ok) {
       return r.json().catch(function(){return {};}).then(function(err) {
         throw new Error(err.error&&err.error.message ? err.error.message : 'DeepSeek请求失败: '+r.status);
@@ -1423,83 +1370,38 @@ function callDeepSeekDirect(systemPrompt, messages, onChunk, maxTok) {
   });
 }
 
-// 加载提示轮播
-var SPINNER_TEXTS = ['正在解读命运的轨迹...','牌面正在向我倾诉...','请您稍等一会儿...','星辰为您指引方向...','感知宇宙的能量流动...','智慧正在汇聚...','塔罗牌正在显现...'];
+// ── 加载等待提示语（唯一版本）──────────────────────────────
+var SPINNER_MSGS = [
+  '正在解读牌意，请稍候...',
+  '星象正在排列，请稍等...',
+  '塔罗牌正在为您指引方向...',
+  '宇宙能量汇聚中，片刻即至...',
+  '命运之轮缓缓转动...',
+  '古老的智慧正在觉醒...',
+  '占卜师凝神感应中...',
+  '解读来自星辰的讯息...'
+];
 var spinnerTimers = {};
 function startSpinnerText(mode) {
-  var el = document.getElementById(mode + 'SpinnerText');
-  if (!el) return;
+  var elId = mode + 'SpinnerText';
   var idx = 0;
-  el.textContent = SPINNER_TEXTS[0];
+  if (spinnerTimers[mode]) clearInterval(spinnerTimers[mode]);
+  var el = document.getElementById(elId);
+  if (el) el.textContent = SPINNER_MSGS[0];
   spinnerTimers[mode] = setInterval(function() {
-    idx = (idx + 1) % SPINNER_TEXTS.length;
-    el.textContent = SPINNER_TEXTS[idx];
+    idx = (idx + 1) % SPINNER_MSGS.length;
+    var e = document.getElementById(elId);
+    if (e) e.textContent = SPINNER_MSGS[idx];
   }, 2200);
 }
 function stopSpinnerText(mode) {
   if (spinnerTimers[mode]) { clearInterval(spinnerTimers[mode]); delete spinnerTimers[mode]; }
-}
-
-
-// 加载提示语轮换
-var SPINNER_MSGS = [
-  '请您稍候，星盘正在运转...',
-  '牌面能量汇聚中，请稍等...',
-  '命运之轮徐徐转动，请稍候...',
-  '占卜师正在解读牌义...',
-  '宇宙的讯息正在传递...',
-  '请您稍候片刻...',
-  '塔罗智慧正在凝聚...',
-];
-var _spinnerTimers = {};
-function startSpinnerText(mode) {
-  var elId = mode + 'SpinnerText';
-  var idx = 0;
-  var el = document.getElementById(elId);
-  if (el) el.textContent = SPINNER_MSGS[0];
-  _spinnerTimers[mode] = setInterval(function() {
-    idx = (idx + 1) % SPINNER_MSGS.length;
-    var e = document.getElementById(elId);
-    if (e) e.textContent = SPINNER_MSGS[idx];
-  }, 2000);
-}
-function stopSpinnerText(mode) {
-  if (_spinnerTimers[mode]) {
-    clearInterval(_spinnerTimers[mode]);
-    delete _spinnerTimers[mode];
-  }
-}
-
-// 加载提示语轮换
-var spinnerHintTimers = {};
-var spinnerHints = [
-  '正在解读牌意...',
-  '星象正在汇聚...',
-  '塔罗牌在诉说...',
-  '命运的答案浮现中...',
-  '占星师在沉思...',
-  '宇宙能量流动中...',
-  '请您稍候片刻...'
-];
-function startSpinnerHints(mode) {
-  var idx = 0;
   var el = document.getElementById(mode + 'SpinnerText');
-  if (!el) return;
-  el.textContent = spinnerHints[0];
-  spinnerHintTimers[mode] = setInterval(function() {
-    idx = (idx + 1) % spinnerHints.length;
-    if (el) el.textContent = spinnerHints[idx];
-  }, 2000);
-}
-function stopSpinnerHints(mode) {
-  if (spinnerHintTimers[mode]) {
-    clearInterval(spinnerHintTimers[mode]);
-    delete spinnerHintTimers[mode];
-  }
+  if (el) el.textContent = SPINNER_MSGS[0];
 }
 
-// 分段渲染解读内容（支持【标题】段落格式和首行缩进）
-// 将占卜词按逗号分行，每句居中显示
+// 打字机效果
+function applyTypewriter(text, onChunk) {
 function formatOracle(text) {
   // 用中文逗号或英文逗号分割，过滤空串
   var parts = text.split(/[，,]/).map(function(s){ return s.trim(); }).filter(Boolean);
@@ -1549,241 +1451,6 @@ function renderReading(elId, text, el) {
   target.innerHTML = html || '<p>' + text + '</p>';
 }
 
-// 趣味等待提示语轮播
-var SPINNER_TEXTS = [
-  '正在解读牌意，请稍候...',
-  '星辰正在低语，请稍等...',
-  '命运的脉络正在浮现...',
-  '塔罗牌正在向您诉说...',
-  '宇宙能量汇聚中...',
-  '智慧之光正在凝聚...',
-  '请稍候，答案即将揭晓...'
-];
-var spinnerTimers = {};
-function startSpinnerText(mode) {
-  var el = document.getElementById(mode + 'SpinnerText');
-  if (!el) return;
-  var idx = 0;
-  el.textContent = SPINNER_TEXTS[0];
-  spinnerTimers[mode] = setInterval(function() {
-    idx = (idx + 1) % SPINNER_TEXTS.length;
-    el.textContent = SPINNER_TEXTS[idx];
-  }, 2200);
-}
-function stopSpinnerText(mode) {
-  if (spinnerTimers[mode]) { clearInterval(spinnerTimers[mode]); delete spinnerTimers[mode]; }
-}
-
-// 等待文字轮播
-var _spinnerTimers = {};
-function startSpinnerText(mode) {
-  var msgs = ['正在解读牌意，请稍候...','星光指引，答案正在浮现...','命运之轮轻轻转动...','牌意深处，洞见将至...','神秘力量汇聚中...','占星与牌义交汇...'];
-  var i = 0;
-  var el = document.getElementById(mode+'SpinnerText');
-  if (el) el.textContent = msgs[0];
-  _spinnerTimers[mode] = setInterval(function() {
-    i = (i + 1) % msgs.length;
-    var e = document.getElementById(mode+'SpinnerText');
-    if (e) e.textContent = msgs[i];
-  }, 2000);
-}
-function stopSpinnerText(mode) {
-  if (_spinnerTimers[mode]) { clearInterval(_spinnerTimers[mode]); delete _spinnerTimers[mode]; }
-}
-
-// 加载提示语轮播
-var SPINNER_MSGS = [
-  '正在解读牌意，请稍候...',
-  '星光引路，智慧汇聚...',
-  '请您稍等一会儿...',
-  '塔罗古卡正在诉说...',
-  '宇宙能量正在传递...',
-  '命运的纱幕缓缓揭开...',
-  '占卜师凝神感应中...'
-];
-var _spinnerTimers = {};
-function startSpinnerText(mode) {
-  var elId = mode + 'SpinnerText';
-  var idx = 0;
-  if (_spinnerTimers[mode]) clearInterval(_spinnerTimers[mode]);
-  _spinnerTimers[mode] = setInterval(function() {
-    idx = (idx + 1) % SPINNER_MSGS.length;
-    var el = document.getElementById(elId);
-    if (el) el.textContent = SPINNER_MSGS[idx];
-  }, 2000);
-}
-function stopSpinnerText(mode) {
-  if (_spinnerTimers[mode]) { clearInterval(_spinnerTimers[mode]); _spinnerTimers[mode] = null; }
-}
-
-// 等待提示语轮播
-var SPINNER_TEXTS = [
-  '正在感应塔罗能量，请稍候...',
-  '星盘正在为您指引方向...',
-  '牌面的奥义正在显现...',
-  '宇宙的信息正在传递...',
-  '占卜师正在深度解读...',
-  '神秘的力量正在汇聚...'
-];
-var spinnerTimers = {};
-function startSpinnerText(mode) {
-  var idx = 0;
-  var elId = mode + 'SpinnerText';
-  if (spinnerTimers[mode]) clearInterval(spinnerTimers[mode]);
-  var el = document.getElementById(elId);
-  if (el) el.textContent = SPINNER_TEXTS[0];
-  spinnerTimers[mode] = setInterval(function() {
-    idx = (idx + 1) % SPINNER_TEXTS.length;
-    var el2 = document.getElementById(elId);
-    if (el2) el2.textContent = SPINNER_TEXTS[idx];
-  }, 2500);
-}
-function stopSpinnerText(mode) {
-  if (spinnerTimers[mode]) { clearInterval(spinnerTimers[mode]); delete spinnerTimers[mode]; }
-}
-
-// 等待提示轮播
-var SPINNER_MSGS = [
-  '请您稍等一会儿，占卜师正在凝神...',
-  '星盘正在旋转，请稍候...',
-  '塔罗牌的智慧需要片刻沉淀...',
-  '宇宙的信息正在汇聚...',
-  '请耐心等待，答案正在浮现...',
-  '牌面能量正在解析中...',
-  '命运之线正在编织，请稍候...'
-];
-var spinnerTimers = {};
-function startSpinnerMessages(mode) {
-  var idx = 0;
-  var elId = mode + 'SpinnerText';
-  var el = document.getElementById(elId);
-  if (!el) return;
-  el.textContent = SPINNER_MSGS[0];
-  spinnerTimers[mode] = setInterval(function() {
-    idx = (idx + 1) % SPINNER_MSGS.length;
-    if (el) el.textContent = SPINNER_MSGS[idx];
-  }, 2500);
-}
-function stopSpinnerMessages(mode) {
-  if (spinnerTimers[mode]) { clearInterval(spinnerTimers[mode]); delete spinnerTimers[mode]; }
-}
-
-// 加载等待文字轮换
-var SPINNER_MSGS = ['✦ 牌面正在显现，请稍候 ✦','✧ 宇宙能量汇聚中… ✧','✦ 塔罗智慧正在解读 ✦','✧ 星象与牌义交融中… ✧','✦ 命运的讯息即将到来 ✦'];
-var spinnerTimers = {};
-function startSpinnerText(mode) {
-  var idx = 0;
-  var elId = mode + 'SpinnerText';
-  stopSpinnerText(mode);
-  spinnerTimers[mode] = setInterval(function() {
-    idx = (idx + 1) % SPINNER_MSGS.length;
-    var el = document.getElementById(elId);
-    if (el) el.textContent = SPINNER_MSGS[idx];
-  }, 2200);
-}
-function stopSpinnerText(mode) {
-  if (spinnerTimers[mode]) { clearInterval(spinnerTimers[mode]); spinnerTimers[mode] = null; }
-  var elId = mode + 'SpinnerText';
-  var el = document.getElementById(elId);
-  if (el) el.textContent = SPINNER_MSGS[0];
-}
-
-
-// ── 加载提示语循环 ──────────────────────────────────────────
-var SPINNER_MSGS = [
-  '正在解读牌意，请稍候...',
-  '星象正在排列，请稍等...',
-  '占卜师凝神感应中...',
-  '宇宙能量汇聚中...',
-  '命运之轮转动，稍候...',
-  '古老的智慧正在觉醒...',
-  '塔罗牌诉说着答案...',
-  '解读来自星辰的讯息...'
-];
-var spinnerTimers = {};
-function startSpinnerText(mode) {
-  var elId = mode + 'SpinnerText';
-  var idx = 0;
-  spinnerTimers[mode] = setInterval(function() {
-    idx = (idx + 1) % SPINNER_MSGS.length;
-    var el = document.getElementById(elId);
-    if (el) el.textContent = SPINNER_MSGS[idx];
-  }, 2500);
-}
-function stopSpinnerText(mode) {
-  if (spinnerTimers[mode]) { clearInterval(spinnerTimers[mode]); delete spinnerTimers[mode]; }
-  var el = document.getElementById(mode + 'SpinnerText');
-  if (el) el.textContent = SPINNER_MSGS[0];
-}
-// 等待提示文字轮换
-var _spinnerTimer = null;
-var _spinnerMsgs = [
-  '✦ 星盘正在感应中，请稍候... ✦',
-  '✧ 塔罗牌正在为你揭示答案... ✧',
-  '✦ 宇宙能量汇聚中，请稍等... ✦',
-  '✧ 命运之轮徐徐转动... ✧',
-  '✦ 神秘的牌义正在浮现... ✦',
-  '✧ 占星师正在解读星象... ✧'
-];
-function startSpinnerText(elId) {
-  var el = document.getElementById(elId);
-  if (!el) return;
-  var idx = 0;
-  el.textContent = _spinnerMsgs[0];
-  _spinnerTimer = setInterval(function() {
-    idx = (idx + 1) % _spinnerMsgs.length;
-    if (el) el.textContent = _spinnerMsgs[idx];
-  }, 2500);
-}
-function stopSpinnerText() {
-  if (_spinnerTimer) { clearInterval(_spinnerTimer); _spinnerTimer = null; }
-}
-
-// 等待提示文字轮换
-var spinnerTimers = {};
-var spinnerMsgs = [
-  '正在解读牌意，请稍候...',
-  '塔罗正在为您指引方向...',
-  '星辰与牌义交织之中...',
-  '请您静心片刻，答案即将揭晓...',
-  '命运的密语正在解析...'
-];
-function startSpinnerText(mode) {
-  var idx = 0;
-  var el = document.getElementById(mode + 'SpinnerText');
-  if (!el) return;
-  el.textContent = spinnerMsgs[0];
-  spinnerTimers[mode] = setInterval(function() {
-    idx = (idx + 1) % spinnerMsgs.length;
-    if (el) el.textContent = spinnerMsgs[idx];
-  }, 2500);
-}
-function stopSpinnerText(mode) {
-  clearInterval(spinnerTimers[mode]);
-}
-
-// 加载文字循环
-var SPINNER_MSGS = [
-  '正在解读星盘，请稍候…',
-  '占卜师正在凝神观牌…',
-  '星辰与牌义正在交汇…',
-  '命运的答案即将揭晓…',
-  '请稍等片刻，智慧正在汇聚…'
-];
-var spinnerTimers = {};
-function startSpinnerText(mode) {
-  var el = document.getElementById(mode + 'SpinnerText');
-  if (!el) return;
-  var idx = 0;
-  el.textContent = SPINNER_MSGS[0];
-  spinnerTimers[mode] = setInterval(function() {
-    idx = (idx + 1) % SPINNER_MSGS.length;
-    el.textContent = SPINNER_MSGS[idx];
-  }, 2200);
-}
-function stopSpinnerText(mode) {
-  if (spinnerTimers[mode]) { clearInterval(spinnerTimers[mode]); delete spinnerTimers[mode]; }
-}
 
 // 打字机效果
 function applyTypewriter(text, onChunk) {
