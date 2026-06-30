@@ -1283,8 +1283,7 @@ function stopSpinnerText(mode) {
   if (el) el.textContent = SPINNER_MSGS[0];
 }
 
-// 打字机效果
-function applyTypewriter(text, onChunk) {
+// 分段渲染解读内容
 function formatOracle(text) {
   // 用中文逗号或英文逗号分割，过滤空串
   var parts = text.split(/[，,]/).map(function(s){ return s.trim(); }).filter(Boolean);
