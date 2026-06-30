@@ -10,7 +10,7 @@
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Noto Serif SC',serif;background:var(--bg);min-height:100vh;color:var(--text);background-image:radial-gradient(ellipse at 15% 15%,rgba(201,168,76,.10) 0%,transparent 55%),radial-gradient(ellipse at 85% 80%,rgba(160,120,220,.12) 0%,transparent 55%),radial-gradient(ellipse at 50% 50%,rgba(255,255,255,.04) 0%,transparent 70%)}
 
-/* ── 访问密钥门 ── */
+/* ── 欢迎门 ── */
 .access-gate{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;
   background:linear-gradient(135deg,#1a1030 0%,#0d1a2e 50%,#1a0a2e 100%)}
 .access-gate::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 40%,rgba(201,168,76,.12) 0%,transparent 65%)}
@@ -19,19 +19,9 @@ body{font-family:'Noto Serif SC',serif;background:var(--bg);min-height:100vh;col
 .gate-star{font-size:48px;margin-bottom:12px;display:block;filter:drop-shadow(0 0 20px rgba(201,168,76,.6))}
 .gate-title{font-size:26px;font-weight:700;color:#f0d890;margin-bottom:6px;letter-spacing:3px}
 .gate-sub{font-size:13px;color:rgba(201,168,76,.6);margin-bottom:28px;letter-spacing:1px}
-.gate-input-wrap{position:relative;margin-bottom:16px}
-.gate-input{width:100%;padding:13px 46px 13px 18px;background:rgba(255,255,255,.08);border:1.5px solid rgba(201,168,76,.3);border-radius:12px;font-size:15px;color:#fff;font-family:'Noto Serif SC',serif;outline:none;transition:all .2s;letter-spacing:2px}
-.gate-input:focus{border-color:rgba(201,168,76,.7);background:rgba(255,255,255,.12);box-shadow:0 0 0 3px rgba(201,168,76,.15)}
-.gate-input::placeholder{color:rgba(255,255,255,.3);letter-spacing:1px}
-.gate-eye{position:absolute;right:14px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:18px;color:rgba(201,168,76,.5);transition:color .2s;background:none;border:none;padding:0}
-.gate-eye:hover{color:rgba(201,168,76,.9)}
 .gate-btn{width:100%;padding:13px;background:linear-gradient(135deg,#e8d5a3,#c9a84c);border:none;border-radius:12px;font-size:16px;font-weight:700;color:#3a2800;cursor:pointer;font-family:'Noto Serif SC',serif;transition:all .2s;box-shadow:0 4px 20px rgba(201,168,76,.3);letter-spacing:2px}
 .gate-btn:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(201,168,76,.5)}
 .gate-btn:active{transform:none}
-.gate-error{color:#ff8080;font-size:13px;margin-top:10px;min-height:20px;transition:all .2s}
-.gate-error.shake{animation:shake .4s ease}
-@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
-.gate-hint{font-size:11.5px;color:rgba(255,255,255,.2);margin-top:20px;line-height:1.7}
 
 .app{max-width:700px;margin:0 auto;padding:18px 14px 80px}
 
@@ -139,10 +129,6 @@ body{font-family:'Noto Serif SC',serif;background:var(--bg);min-height:100vh;col
 .btn-cancel{background:#f0f0f0;color:#666}
 .modal-section{border-top:1px solid #eee;padding-top:14px;margin-top:14px}
 .modal-section h4{font-size:13.5px;color:var(--text);margin-bottom:8px}
-.proxy-box{margin-top:12px;padding:12px;background:#fffbf0;border-radius:10px;border:1px solid #e8d890}
-.proxy-box-title{font-size:12.5px;font-weight:600;color:var(--gold-dark);margin-bottom:6px}
-.proxy-tutorial{display:none;margin-top:10px;padding:10px;background:#f8f4e8;border-radius:8px;font-size:12px;line-height:1.9;color:#555}
-.tutorial-toggle{font-size:12px;color:var(--gold-dark);cursor:pointer;margin-top:8px;text-decoration:underline}
 .copy-btn{background:var(--gold-light);border:1px solid var(--gold);border-radius:8px;padding:6px 14px;font-size:12px;cursor:pointer;font-family:'Noto Serif SC',serif;color:var(--gold-dark);font-weight:600}
 .history-page{display:none}
 .history-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
@@ -177,14 +163,8 @@ body{font-family:'Noto Serif SC',serif;background:var(--bg);min-height:100vh;col
   <div class="gate-card">
     <span class="gate-star">✦</span>
     <div class="gate-title">塔罗占卜</div>
-    <div class="gate-sub">请输入访问密钥</div>
-    <div class="gate-input-wrap">
-      <input class="gate-input" type="password" id="gateInput" placeholder="输入密钥..." onkeydown="if(event.key==='Enter')checkAccess()">
-      <button class="gate-eye" id="gateEye" onclick="toggleGateEye()">👁</button>
-    </div>
-    <button class="gate-btn" onclick="checkAccess()">进　入</button>
-    <div class="gate-error" id="gateError"></div>
-    <div class="gate-hint">此页面需要密钥才能访问<br>请联系管理员获取</div>
+    <div class="gate-sub">愿星辰指引你的旅程</div>
+    <button class="gate-btn" onclick="admitUser()">进　入</button>
   </div>
 </div>
 <div class="app">
@@ -376,22 +356,6 @@ body{font-family:'Noto Serif SC',serif;background:var(--bg);min-height:100vh;col
 // ── CONFIG ──────────────────────────────────────────────────
 // 始终使用 DeepSeek 官方 API
 
-function toggleTutorial(type) {
-  var el = document.getElementById(type + 'Tutorial');
-  var open = el.style.display === 'none' || el.style.display === '';
-  el.style.display = open ? 'block' : 'none';
-}
-function copyCode(type) {
-  var code = type === 'ant' ? ANT_WORKER : OR_WORKER;
-  navigator.clipboard.writeText(code).then(function() {
-    alert('✅ 代码已复制！请粘贴到 Cloudflare Worker 编辑器中');
-  }).catch(function() {
-    var ta = document.createElement('textarea');
-    ta.value = code; document.body.appendChild(ta); ta.select();
-    document.execCommand('copy'); document.body.removeChild(ta);
-    alert('✅ 代码已复制！请粘贴到 Cloudflare Worker 编辑器中');
-  });
-}
 
 // ── CARD IMAGES (base64) ────────────────────────────────────
 var CARD_IMAGES = {
@@ -1144,76 +1108,9 @@ function openDetail(rec) {
 }
 function closeDetail() { document.getElementById('detailModal').classList.remove('open'); }
 
-// ── 访问密钥配置 ──────────────────────────────────────────────
-// ── 内置 Worker 配置 ──────────────────────────────────────────
-var BUILTIN_WORKER_URL = 'https://lucky-poetry-af98.2654608344qq.workers.dev';
-var BUILTIN_ACCESS_SECRET = '';   // 登录后动态获取
-var PWD_HASH = '765a25e5f61a534b'; // 加盐哈希，防止彩虹表
+// ── 内置配置（用于 DeepSeek API 密钥解密）──────────────────────
 var FALLBACK_SECRET = 'bQ7qXVL7hDUIphXXmCkRfmMaekxtgWVB';
 var _EK = 'EToaRGEydVIOIGMoFVBpbFVhBRBuZHhWDHdlKElbb2AEZAQ='; // 加密存储，运行时解密
-
-// 访问门控逻辑
-// ── 纯本地密码验证（无需网络）──
-function simpleHash(str) {
-  // 使用 Math.imul 进行精确32位整数乘法，避免 JS 浮点精度丢失
-  var imul = Math.imul || function(a, b) {
-    // polyfill for very old browsers
-    var ah = (a >>> 16) & 0xFFFF, al = a & 0xFFFF;
-    var bh = (b >>> 16) & 0xFFFF, bl = b & 0xFFFF;
-    return ((al * bl) + (((ah * bl + al * bh) << 16) >>> 0) | 0) >>> 0;
-  };
-  var h = 0x811c9dc5 >>> 0;
-  for (var i = 0; i < str.length; i++) {
-    h = (h ^ str.charCodeAt(i)) >>> 0;
-    h = imul(h, 0x01000193) >>> 0;
-  }
-  var h2 = 0;
-  for (var j = str.length - 1; j >= 0; j--) {
-    h2 = (((h2 << 5) >>> 0) + h2 + str.charCodeAt(j)) >>> 0;
-  }
-  var r  = (h ^ h2) >>> 0;
-  var r2 = (h2 ^ 0xdeadbeef) >>> 0;
-  // 手动补零，不用 padStart（兼容旧安卓 WebView）
-  var s1 = r.toString(16);  while (s1.length < 8) s1 = '0' + s1;
-  var s2 = r2.toString(16); while (s2.length < 8) s2 = '0' + s2;
-  return s1 + s2;
-}
-
-function checkAccess() {
-  var input = document.getElementById('gateInput').value.trim();
-  if (!input) return;
-  var btn = document.querySelector('.gate-btn');
-
-  // 纯本地哈希比对，毫秒级完成，无网络请求
-  if (simpleHash(input + 'tarot_2026_xk9m') === '765a25e5f61a534b') {
-    BUILTIN_ACCESS_SECRET = FALLBACK_SECRET;
-    sessionStorage.setItem('tarot_token', FALLBACK_SECRET);
-    btn.textContent = '进　入'; btn.disabled = false;
-    admitUser();
-    // 后台静默尝试向 Worker 升级令牌（不阻塞进入）
-    try {
-      fetch(BUILTIN_WORKER_URL + '/auth', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password: input })
-      }).then(function(r){ return r.json(); })
-        .then(function(data){
-          if (data && data.ok && data.token) {
-            BUILTIN_ACCESS_SECRET = data.token;
-            sessionStorage.setItem('tarot_token', data.token);
-          }
-        }).catch(function(){});
-    } catch(e) {}
-  } else {
-    btn.textContent = '进　入'; btn.disabled = false;
-    var errEl = document.getElementById('gateError');
-    errEl.textContent = '密钥错误，请重试';
-    errEl.classList.remove('shake');
-    void errEl.offsetWidth;
-    errEl.classList.add('shake');
-    document.getElementById('gateInput').value = '';
-  }
-}
 
 function admitUser() {
   var gate = document.getElementById('accessGate');
@@ -1221,20 +1118,6 @@ function admitUser() {
   gate.style.opacity = '0';
   setTimeout(function(){ gate.style.display = 'none'; }, 500);
 }
-function toggleGateEye() {
-  var inp = document.getElementById('gateInput');
-  var eye = document.getElementById('gateEye');
-  if (inp.type === 'password') { inp.type = 'text'; eye.textContent = '🙈'; }
-  else { inp.type = 'password'; eye.textContent = '👁'; }
-}
-// 若本次会话已验证，恢复 Worker 调用令牌并跳过密码门
-(function() {
-  var savedToken = sessionStorage.getItem('tarot_token');
-  if (savedToken) {
-    BUILTIN_ACCESS_SECRET = savedToken;
-    document.getElementById('accessGate').style.display = 'none';
-  }
-})();
 
 // ── AI 调用入口（始终直连 DeepSeek）─────────────────────────
 
